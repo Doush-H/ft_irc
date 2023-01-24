@@ -96,7 +96,7 @@ void Server::start() {
 void Server::setupSocket() {
 	// Create a socket
 	_listeningSocket = socket(PF_INET, SOCK_STREAM, getprotobyname("tcp")->p_proto);
-	setsockopt(_listeningSocket, SOL_SOCKET,  SO_REUSEADDR, NULL, NULL);
+	setsockopt(_listeningSocket, SOL_SOCKET,  SO_REUSEADDR, NULL, 0);
 	fcntl(_listeningSocket, F_SETFL, O_NONBLOCK);
 	if (_listeningSocket == -1) {
 		throw FailedToCreateSocketException();
@@ -180,9 +180,6 @@ void Server::executeCommand(int i) {
 			// Execute
 			// Send back response
 		}
-		char *buf2 = ":myirc.com 001 doush :Welcome to the server bro :D\r\n";
-		sleep(1);
-		send(userFd, buf2, 54, 0);
 	}
 }
 
