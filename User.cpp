@@ -40,7 +40,7 @@ void User::setFullName(const std::string& fullName) {
 	User::_fullName = fullName;
 }
 
-bool User::isRegistered1() const {
+bool User::isRegistered() const {
 	return _isRegistered;
 }
 

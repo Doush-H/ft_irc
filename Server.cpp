@@ -96,7 +96,12 @@ void Server::start() {
 void Server::setupSocket() {
 	// Create a socket
 	_listeningSocket = socket(PF_INET, SOCK_STREAM, getprotobyname("tcp")->p_proto);
-	setsockopt(_listeningSocket, SOL_SOCKET,  SO_REUSEADDR, NULL, 0);
+	int optVal = 1;
+	int optLen = sizeof(optVal);
+	if (setsockopt(_listeningSocket, SOL_SOCKET,  SO_REUSEADDR, (const char*)&optVal, optLen) == -1) {
+		std::cout << "setsockopt error" << std::endl;
+		exit(-1);
+	}
 	fcntl(_listeningSocket, F_SETFL, O_NONBLOCK);
 	if (_listeningSocket == -1) {
 		throw FailedToCreateSocketException();
@@ -172,15 +177,46 @@ void Server::executeCommand(int i) {
 		user->extendBuffer(buf, recvBytes);
 
 		std::string cmd;
+		std::string response;
 
 		// Going to execute commands until there's nothing to execute anymore
 		while (!(cmd = user->getCommand()).empty()) {
 			std::cout << "Going to execute: |" << cmd << "|" << std::endl;
 			// Parse
-			// Execute
+			Message message = Message::parseBuf(cmd);
+			message.setSenderUser(user);
+			// Execute and get a response
+			response = commandCall(message);
 			// Send back response
+			try {
+				sendResponse(response, userFd);
+			} catch (std::exception& e) {
+				std::cout << e.what() << std::endl;
+			}
 		}
 	}
+}
+
+std::string Server::commandCall(Message& msg) {
+	std::string response;
+	if (msg.getCommand() == "PASS") {
+		response = passCommand(msg);
+	} else if (msg.getCommand() == "NICK") {
+		response = nickCommand(msg);
+	} else if (msg.getCommand() == "USER") {
+		response = userCommand(msg);
+	} else {
+		response = ":42irc.com 421 " + msg.getCommand() + " :" + msg.getCommand();
+	}
+	response += "\r\n";
+	return response;
+}
+
+void Server::sendResponse(const std::string& response, int userFd) {
+	ssize_t sendBytes = send(userFd, response.c_str(), response.length(), 0);
+	if (sendBytes == -1)
+		throw SendingTheMsgFailedException();
+	std::cout << "Succesfully sent the response to the user" << std::endl;
 }
 
 void Server::removeUser(int i) {

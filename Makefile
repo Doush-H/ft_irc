@@ -4,7 +4,7 @@ CPP := c++
 CPPFLAGS := -std=c++98
 
 
-SRC := Message.cpp Server.cpp User.cpp main.cpp
+SRC := Message.cpp Server.cpp User.cpp main.cpp commands.cpp
 OBJ := $(SRC:.cpp=.o)
 
 DEPS := Message.hpp Server.hpp User.hpp

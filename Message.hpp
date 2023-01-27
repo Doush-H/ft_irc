@@ -3,36 +3,39 @@
 
 # include <string>
 # include <list>
+# include "User.hpp"
+# include <iterator>
+# include <iostream>
 
 class Message {
 private:
-	std::string 				_prefix;
-	std::string 				_commandStr;
-	int 						_commandInt;
+	// !!!!! Prefix probably will not be needed so it's not going to be used for now!!!!
+	// std::string 				_prefix;
+	std::string 				_command;
 	std::list<std::string>		_params;
-	bool 						_isCommandStr;
+	User*						_senderUser;
 
 public:
 
 	// ------------------ Getters and setters ------------------
-	const std::string& getPrefix() const;
-	void setPrefix(const std::string& prefix);
-	const std::string& getCommandStr() const;
-	void setCommandStr(const std::string& commandStr);
-	int getCommandInt() const;
-	void setCommandInt(int commandInt);
-	const std::list<std::string>& getParams() const;
-	void setParams(const std::list<std::string>& params);
-	bool isIsCommandStr() const;
-	void setIsCommandStr(bool isCommandStr);
+	// const std::string& getPrefix() const;
+	// void setPrefix(const std::string& prefix);
+	const std::string& 					getCommand() const;
+	void 								setCommand(const std::string& commandStr);
+	const std::list<std::string>& 		getParams() const;
+	void 								setParams(const std::list<std::string>& params);
+	void								setSenderUser(User* user);
+	User&								getSenderUser();
 
 	// ------------------- Methods -------------------
 	static Message parseBuf(const std::string& buf);
 private:
-	static void parsePrefix(const std::string& buf);
-	static void parseCommand(const std::string& buf);
-	static void parseParams(const std::string& buf);
+	// static std::string parsePrefix(const std::string& buf, Message& msg);
+	static std::string 		parseCommand(const std::string& buf, Message& msg);
+	static void 			parseParams(const std::string& buf, Message& msg);
 };
+
+std::ostream& operator<<(std::ostream& stream, const Message& msg);
 
 
 #endif //MESSAGE_HPP

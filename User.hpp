@@ -24,7 +24,7 @@ public:
 	void setName(const std::string& name);
 	const std::string& getFullName() const;
 	void setFullName(const std::string& fullName);
-	bool isRegistered1() const;
+	bool isRegistered() const;
 	void setIsRegistered(bool isRegistered);
 	bool isAllowConnection() const;
 	void setAllowConnection(bool allowConnection);
