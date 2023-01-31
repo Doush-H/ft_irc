@@ -17,6 +17,7 @@
 # include "Message.hpp"
 
 # define MSG_LEN 4096
+# define SERV_PREFIX ":42irc.com "
 
 class Server {
 

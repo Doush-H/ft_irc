@@ -2,7 +2,7 @@
 
 void Server::checkIfRegistered(Message& msg, std::string& resp) {
 	if (!msg.getSenderUser().getFullName().empty() && !msg.getSenderUser().getNick().empty() && msg.getSenderUser().isAllowConnection() && !msg.getSenderUser().isRegistered()) {
-		resp = ":42irc.com 001 " + msg.getSenderUser().getNick() + " :Welcome to our irc server " + msg.getSenderUser().getNick();
+		resp = SERV_PREFIX "001 " + msg.getSenderUser().getNick() + " :Welcome to our irc server " + msg.getSenderUser().getNick();
 		msg.getSenderUser().setIsRegistered(true);
 	}
 }
@@ -11,9 +11,9 @@ void Server::checkIfRegistered(Message& msg, std::string& resp) {
 std::string Server::passCommand(Message& msg){
 	std::string resp;
 	if (msg.getParams().size() != 1) {
-		resp = ":42irc.com 461 :Wrong number of parameters";
+		resp = SERV_PREFIX "461 :Wrong number of parameters";
 	} else if (msg.getSenderUser().isRegistered()) {
-		resp = ":42irc.com 462 :You're already registered";
+		resp = SERV_PREFIX "462 :You're already registered";
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputPass = params.front();
@@ -21,7 +21,7 @@ std::string Server::passCommand(Message& msg){
 			msg.getSenderUser().setAllowConnection(true);
 		} else {
 			msg.getSenderUser().setAllowConnection(false);
-			resp = ":42irc.com ERROR :Password incorrect";
+			resp = SERV_PREFIX "464 * :Password incorrect";
 		}
 	}
 	return resp;
@@ -30,9 +30,9 @@ std::string Server::passCommand(Message& msg){
 std::string Server::nickCommand(Message& msg){
 	std::string resp;
 	if (msg.getParams().size() != 1) {
-		resp = ":42irc.com 431 :No nick name was given";
+		resp = SERV_PREFIX "431 :No nick name was given";
 	} else if (!msg.getSenderUser().isAllowConnection()) {
-		resp = ":42irc.com 462 :Please provide the server password with PASS command before registration";
+		resp = SERV_PREFIX "462 :Please provide the server password with PASS command before registration";
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputNick = params.front();
@@ -43,7 +43,7 @@ std::string Server::nickCommand(Message& msg){
 		while (it != eit) {
 			if (it->second.getNick() == inputNick) {
 				setName = false;
-				resp = ":42irc.com 433 " + inputNick + " :Nickname is already in use";
+				resp = SERV_PREFIX "433 " + inputNick + " :Nickname is already in use";
 			}
 			it++;
 		}
@@ -57,11 +57,11 @@ std::string Server::nickCommand(Message& msg){
 std::string Server::userCommand(Message& msg){
 	std::string resp;
 	if (msg.getParams().size() != 4) {
-		resp = ":42irc.com 461 :Not all parameters were provided";
+		resp = SERV_PREFIX "461 :Not all parameters were provided";
 	} else if (!msg.getSenderUser().isAllowConnection()) {
-		resp = ":42irc.com 462 :Please provide the server password with PASS command before registration";
+		resp = SERV_PREFIX "462 :Please provide the server password with PASS command before registration";
 	} else if (msg.getSenderUser().isRegistered()) {
-		resp = ":42irc.com 462 :You can not change your user details after registration";
+		resp = SERV_PREFIX "462 :You can not change your user details after registration";
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputName = params.front();
