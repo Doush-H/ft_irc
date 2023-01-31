@@ -79,13 +79,6 @@ std::string Server::pingCommand(Message& msg){
 	} else {
 		std::list<std::string> params = msg.getParams();
 		resp = "PONG :" + params.front();
-//		std::string inputPass = params.front();
-//		if (inputPass == _password) {
-//			msg.getSenderUser().setAllowConnection(true);
-//		} else {
-//			msg.getSenderUser().setAllowConnection(false);
-//			resp = SERV_PREFIX "464 * :Password incorrect";
-//		}
 	}
 	return resp;
 }
