@@ -205,6 +205,8 @@ std::string Server::commandCall(Message& msg) {
 		response = nickCommand(msg);
 	} else if (msg.getCommand() == "USER") {
 		response = userCommand(msg);
+	} else if (msg.getCommand() == "PING") {
+		response = pingCommand(msg);
 	} else {
 		response = SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand();
 	}
@@ -216,7 +218,7 @@ void Server::sendResponse(const std::string& response, int userFd) {
 	ssize_t sendBytes = send(userFd, response.c_str(), response.length(), 0);
 	if (sendBytes == -1)
 		throw SendingTheMsgFailedException();
-	std::cout << "|" << response << "| was successfully sad to the user" << std::endl;
+	std::cout << "|" << response << "| was successfully sent to the user" << std::endl;
 }
 
 void Server::removeUser(int i) {
