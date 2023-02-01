@@ -207,6 +207,8 @@ std::string Server::commandCall(Message& msg) {
 		response = userCommand(msg);
 	} else if (msg.getCommand() == "PING") {
 		response = pingCommand(msg);
+	} else if (msg.getCommand() == "CAP") {
+		response = capCommand(msg);
 	} else {
 		response = SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand();
 	}

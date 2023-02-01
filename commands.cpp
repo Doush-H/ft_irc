@@ -89,3 +89,10 @@ std::string Server::pingCommand(Message& msg){
 	}
 	return resp;
 }
+
+std::string Server::capCommand(Message& msg){
+	std::string resp;
+	if (msg.getParams().front() == "LS")
+		resp = "CAP * LS :End of CAP LS negotiation";
+	return resp;
+}
