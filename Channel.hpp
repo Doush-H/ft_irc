@@ -32,7 +32,6 @@ private:
 	std::string	_name;
 	std::string	_channel_key;
 	std::string	_topic;
-	User    _owner;
 	std::list<User>	_operators;
 	std::list<User>	_voice_prio;
 	std::list<User>	_no_prio;
@@ -55,7 +54,6 @@ public:
 	const std::string	&getTopic() const;
 	void	setTopic(const std::string &key);
     //user getter setters
-	const User	&getOwner() const;
 	const std::list<User>	getOperators() const;
 	void	removeOperator(const User &user);
 	void	addOperator(const User &user);
