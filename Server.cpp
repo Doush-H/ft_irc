@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <cstring>
 
 int Server::getPort() const {
 	return _port;
@@ -45,7 +46,7 @@ void Server::setActivePoll(nfds_t pollSize) {
 // ---------------------- Constructors ------------------------
 
 Server::Server(char** argv){
-	long port = strtol(argv[1], nullptr, 0);
+	long port = strtol(argv[1], NULL, 0);
 	if (port < 0 || errno == ERANGE)
 		throw WrongPortNumberException();
 	_port = (int) port;

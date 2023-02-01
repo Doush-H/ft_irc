@@ -74,18 +74,11 @@ std::string Server::userCommand(Message& msg){
 
 std::string Server::pingCommand(Message& msg){
 	std::string resp;
-	if (msg.getParams().size() != 1) {
+	if (msg.getParams().size() != 2) {
 		resp = SERV_PREFIX "461 :Wrong number of parameters";
 	} else {
 		std::list<std::string> params = msg.getParams();
 		resp = "PONG :" + params.front();
-//		std::string inputPass = params.front();
-//		if (inputPass == _password) {
-//			msg.getSenderUser().setAllowConnection(true);
-//		} else {
-//			msg.getSenderUser().setAllowConnection(false);
-//			resp = SERV_PREFIX "464 * :Password incorrect";
-//		}
 	}
 	return resp;
 }
