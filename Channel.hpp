@@ -32,10 +32,10 @@ private:
 	const std::string	_name;
 	std::string	_channel_key;
 	std::string	_topic;
-	std::list<User>	_operators;
-	std::list<User>	_voice_prio;
-	std::list<User>	_no_prio;
-	std::list<User>	_banned;
+	std::list<User *>	_operators;
+	std::list<User *>	_voice_prio;
+	std::list<User *>	_no_prio;
+	std::list<User *>	_banned;
 	bool	_secret;
 	bool	_prv;
 	bool	_block_external_message;
@@ -54,23 +54,27 @@ public:
 	const std::string	&getTopic() const;
 	void	setTopic(const std::string &key);
     //user getter setters
-	const std::list<User>	getOperators() const;
+	void	removeAllGroups(const User &user);
+	bool	findOperator(const User &user);
 	void	removeOperator(const User &user);
-	void	addOperator(const User &user);
-	const std::list<User>	getVoicePrio() const;
+	void	addOperator(User &user);
+	bool	findVoicePrio(const User &user);
 	void	removeVoicePrio(const User &user);
-	void	addVoicePrio(const User &user);
-	const std::list<User>	getNoPrio() const;
+	void	addVoicePrio(User &user);
+	bool	findNoPrio(const User &user);
 	void	removeNoPrio(const User &user);
-	void	addNoPrio(const User &user);
-	const std::list<User>	getBanned() const;
+	void	addNoPrio(User &user);
+	bool	findBanned(const User &user);
 	void	removeBanned(const User &user);
-	void	addBanned(const User &user);
+	void	addBanned(User &user);
     //boolean getter setters
+	//--these could potentially be differently implemented:
 	const bool	&getSecret() const;
 	void	setSecret(const bool to);
 	const bool	&getPrivate() const;
 	void	setPrivate(const bool to);
+	//--my idea is to have three different lists of channels in the server class
+	//--this would make for three lists: normal, secret and private channels
 	const bool	&getBlockExternal() const;
 	void	setBlockExternal(const bool to);
 	const bool	&getModerated() const;
