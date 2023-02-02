@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include "User.hpp"
 
 Channel::Channel(std::string name) : _name(name)
 {
@@ -47,6 +48,22 @@ void	Channel::removeAllGroups(const User &user)
 	removeBanned(user);
 }
 
+unsigned int	Channel::countUsers()
+{
+	std::list<User *>::iterator	it = _operators.begin();
+	unsigned int	count = 0;
+
+	for (; it != _operators.end(); it++)
+		count++;
+	it = _voice_prio.begin();
+	for (; it != _voice_prio.end(); it++)
+		count++;
+	it = _no_prio.begin();
+	for (; it != _no_prio.end(); it++)
+		count++;
+	return (count);
+}
+
 //temp
 #include <iostream>
 //
@@ -81,6 +98,8 @@ void	Channel::removeOperator(const User &user)
 
 void	Channel::addOperator(User &user)
 {
+	if (_limit != -1 && countUsers() >= _limit)
+		return ;
 	removeAllGroups(user);
 	_operators.push_front(&user);
 }
@@ -110,6 +129,8 @@ void	Channel::removeVoicePrio(const User &user)
 
 void	Channel::addVoicePrio(User &user)
 {
+	if (_limit != -1 && countUsers() >= _limit)
+		return ;
 	removeAllGroups(user);
 	_voice_prio.push_front(&user);
 }
@@ -139,6 +160,8 @@ void	Channel::removeNoPrio(const User &user)
 
 void	Channel::addNoPrio(User &user)
 {
+	if (_limit != -1 && countUsers() >= _limit)
+		return ;
 	removeAllGroups(user);
 	_no_prio.push_front(&user);
 }

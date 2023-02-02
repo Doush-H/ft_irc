@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include "User.hpp"
 
 int main(void)
 {

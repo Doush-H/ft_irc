@@ -15,6 +15,7 @@
 # include <iterator>
 # include "User.hpp"
 # include "Message.hpp"
+# include "Server.hpp"
 
 # define MSG_LEN 4096
 # define SERV_PREFIX ":42irc.com "
@@ -29,7 +30,11 @@ private:
 	bool					_stop;					// Tells the server to stop if set true
 	int 					_listeningSocket; 		// Fd of the socket that was creating, it's used for accepting new connection
 	std::map<int, User>		_users; 				// A map with fds as keys and User that the fd belongs to as the value of the map
-
+	// may change this
+	std::map<int, Server>	_normal_channels;		// Normal channels are neither secret or private
+	std::map<int, Server>	_secret_channels;		// Secret channels are not displayed on the client list
+	std::map<int, Server>	_private_channels;		// Private channels are displayed in the private section of the client list
+	// 
 
 public:
 	// -------------------- Exceptions ---------------------

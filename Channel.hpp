@@ -1,8 +1,10 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
-# include "User.hpp"
 # include <list>
+# include <string>
+
+class	User;
 
 //to figure out: users may be invisible, able to receive server notices, able to receive wallops, become IRC operator
 // potential problem: maybe some users will be able to have low voice prio and be operators (look into)
@@ -55,6 +57,7 @@ public:
 	void	setTopic(const std::string &key);
     //user getter setters
 	void	removeAllGroups(const User &user);
+	unsigned int	countUsers();
 	bool	findOperator(const User &user);
 	void	removeOperator(const User &user);
 	void	addOperator(User &user);
