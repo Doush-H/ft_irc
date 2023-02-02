@@ -29,7 +29,7 @@
 class Channel
 {
 private:
-	std::string	_name;
+	const std::string	_name;
 	std::string	_channel_key;
 	std::string	_topic;
 	std::list<User>	_operators;
