@@ -21,7 +21,7 @@ int main(void)
 
 	std::cout << "-------------------------" << std::endl;
 
-	chan.removeModes(PRIV | SECRET);
+	chan.removeModes(PRIV);
 	std::cout << chan.checkModes(PRIV) << std::endl;
 	std::cout << chan.checkModes(SECRET) << std::endl;
 	std::cout << chan.checkModes(MODERATED) << std::endl;

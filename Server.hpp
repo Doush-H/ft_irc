@@ -29,7 +29,7 @@ private:
 	nfds_t 					_activePoll; 			// The number of user that we have in poll
 	bool					_stop;					// Tells the server to stop if set true
 	int 					_listeningSocket; 		// Fd of the socket that was creating, it's used for accepting new connection
-	std::map<int, User>		_users; 				// A map with fds as keys and User that the fd belongs to as the value of the map
+	std::map<int, User>		_users;					// A map with fds as keys and User that the fd belongs to as the value of the map
 	// may change this
 	std::map<std::string, Channel>	_channels;	// Private channels are displayed in the private section of the client list
 	// 
