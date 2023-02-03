@@ -31,9 +31,7 @@ private:
 	int 					_listeningSocket; 		// Fd of the socket that was creating, it's used for accepting new connection
 	std::map<int, User>		_users; 				// A map with fds as keys and User that the fd belongs to as the value of the map
 	// may change this
-	std::map<int, Channel>	_normal_channels;		// Normal channels are neither secret or private
-	std::map<int, Channel>	_secret_channels;		// Secret channels are not displayed on the client list
-	std::map<int, Channel>	_private_channels;		// Private channels are displayed in the private section of the client list
+	std::map<std::string, Channel>	_channels;	// Private channels are displayed in the private section of the client list
 	// 
 
 public:

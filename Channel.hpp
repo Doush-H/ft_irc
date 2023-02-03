@@ -45,7 +45,7 @@ private:
 	bool	_invite_only;
 	bool	_topic_change_restricted;
 	int	_limit;
-	bool	_ban_hostmasks;
+	// bool	_ban_hostmasks;
 public:
 	Channel(std::string name);
 	~Channel();
