@@ -210,6 +210,8 @@ std::string Server::commandCall(Message& msg) {
 		response = pingCommand(msg);
 	} else if (msg.getCommand() == "CAP") {
 		response = capCommand(msg);
+	} else if (msg.getCommand() == "JOIN") {
+		response = joinCommand(msg);
 	} else {
 		response = SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand();
 	}

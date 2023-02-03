@@ -149,6 +149,7 @@ class SendingTheMsgFailedException : public std::exception {
 	std::string 			userCommand(Message& msg);
 	std::string				pingCommand(Message& msg);
 	std::string				capCommand(Message& msg);
+	std::string				joinCommand(Message& msg);
 	void					checkIfRegistered(Message& msg, std::string& resp);
 };
 
