@@ -10,7 +10,6 @@ Channel::Channel(std::string name) : _name(name)
 	_invite_only = false;
 	_topic_change_restricted = false;
 	_limit = -1;
-	_ban_hostmasks = false;
 }
 
 Channel::~Channel() {}
@@ -40,159 +39,48 @@ void	Channel::setTopic(const std::string &key)
 	_channel_key = key;
 }
 
-void	Channel::removeAllGroups(const User &user)
+// void	Channel::removeAllGroups(const User &user)
+// {
+// 	removeOperator(user);
+// 	removeVoicePrio(user);
+// 	removeNoPrio(user);
+// 	removeBanned(user);
+// }
+
+size_t	Channel::countUsers()
 {
-	removeOperator(user);
-	removeVoicePrio(user);
-	removeNoPrio(user);
-	removeBanned(user);
+	return (_users.size());
 }
 
-unsigned int	Channel::countUsers()
+void	Channel::setPrivilege(const User &user, int priv)
 {
-	std::list<User *>::iterator	it = _operators.begin();
-	unsigned int	count = 0;
+	std::map<const User *, int>::iterator	it = _users.find(&user);
 
-	for (; it != _operators.end(); it++)
-		count++;
-	it = _voice_prio.begin();
-	for (; it != _voice_prio.end(); it++)
-		count++;
-	it = _no_prio.begin();
-	for (; it != _no_prio.end(); it++)
-		count++;
-	return (count);
+	if (it == _users.end())
+		return ;
+	it->second = priv;
 }
 
-//temp
-#include <iostream>
-//
-
-bool	Channel::findOperator(const User &user)
+int	Channel::findUser(const User &user)
 {
-	std::list<User *>::iterator	it = _operators.begin();
+	std::map<const User *, int>::iterator	it = _users.find(&user);
 
-	for (; it != _operators.end(); it++)
-	{
-		if (&user == *it)
-		{
-			//temp
-			std::cout << "found one" << std::endl;
-			//
-			return (true);
-		}
-	}
-	return (false);
+	if (it == _users.end())
+		return (-1);
+	return (it->second);
 }
 
-void	Channel::removeOperator(const User &user)
+void	Channel::removeUser(const User &user)
 {
-	std::list<User *>::iterator	it = _operators.begin();
-
-	for (; it != _operators.end(); it++)
-	{
-		if (&user == *it)
-			it = _operators.erase(it);
-	}
+	_users.erase(&user);
 }
 
-void	Channel::addOperator(User &user)
+void	Channel::addUser(User &user, int priv)
 {
 	if (_limit != -1 && countUsers() >= _limit)
 		return ;
-	removeAllGroups(user);
-	_operators.push_front(&user);
-}
-
-bool	Channel::findVoicePrio(const User &user)
-{
-	std::list<User *>::iterator	it = _voice_prio.begin();
-
-	for (; it != _voice_prio.end(); it++)
-	{
-		if (&user == *it)
-			return (true);
-	}
-	return (false);
-}
-
-void	Channel::removeVoicePrio(const User &user)
-{
-	std::list<User *>::iterator	it = _voice_prio.begin();
-
-	for (; it != _voice_prio.end(); it++)
-	{
-		if (&user == *it)
-			it = _voice_prio.erase(it);
-	}
-}
-
-void	Channel::addVoicePrio(User &user)
-{
-	if (_limit != -1 && countUsers() >= _limit)
-		return ;
-	removeAllGroups(user);
-	_voice_prio.push_front(&user);
-}
-
-bool	Channel::findNoPrio(const User &user)
-{
-	std::list<User *>::iterator	it = _no_prio.begin();
-
-	for (; it != _no_prio.end(); it++)
-	{
-		if (&user == *it)
-			return (true);
-	}
-	return (false);
-}
-
-void	Channel::removeNoPrio(const User &user)
-{
-	std::list<User *>::iterator	it = _no_prio.begin();
-
-	for (; it != _no_prio.end(); it++)
-	{
-		if (&user == *it)
-			it = _no_prio.erase(it);
-	}
-}
-
-void	Channel::addNoPrio(User &user)
-{
-	if (_limit != -1 && countUsers() >= _limit)
-		return ;
-	removeAllGroups(user);
-	_no_prio.push_front(&user);
-}
-
-bool	Channel::findBanned(const User &user)
-{
-	std::list<User *>::iterator	it = _no_prio.begin();
-
-	for (; it != _no_prio.end(); it++)
-	{
-		if (&user == *it)
-			return (true);
-	}
-	return (false);
-}
-
-void	Channel::removeBanned(const User &user)
-{
-	std::list<User *>::iterator	it = _banned.begin();
-
-	for (; it != _banned.end(); it++)
-	{
-		if (&user == *it)
-			it = _banned.erase(it);
-	}
-}
-
-void	Channel::addBanned(User &user)
-{
-	removeAllGroups(user);
-	_banned.push_front(&user);
+	if (_users.find(&user) == _users.end())
+		_users.insert(std::pair<const User *, int>(&user, priv));
 }
 
 const bool	&Channel::getSecret() const
@@ -265,12 +153,12 @@ void	Channel::setLimit(const int to)
 	_limit = to;
 }
 
-const bool	&Channel::getBanHostmasks() const
-{
-	return (_ban_hostmasks);
-}
+// const bool	&Channel::getBanHostmasks() const
+// {
+// 	return (_ban_hostmasks);
+// }
 
-void	Channel::setBanHostmasks(const bool to)
-{
-	_ban_hostmasks = to;
-}
+// void	Channel::setBanHostmasks(const bool to)
+// {
+// 	_ban_hostmasks = to;
+// }

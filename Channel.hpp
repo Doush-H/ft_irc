@@ -1,10 +1,13 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
+# include <map>
 # include <list>
 # include <string>
 
 class	User;
+
+typedef enum	privilege { OPERATOR = 0, VOICE_PRIO = 1, NO_PRIO = 2, BANNED = 3, INVITED = 4 } priviledge;
 
 //to figure out: users may be invisible, able to receive server notices, able to receive wallops, become IRC operator
 // potential problem: maybe some users will be able to have low voice prio and be operators (look into)
@@ -34,10 +37,7 @@ private:
 	const std::string	_name;
 	std::string	_channel_key;
 	std::string	_topic;
-	std::list<User *>	_operators;
-	std::list<User *>	_voice_prio;
-	std::list<User *>	_no_prio;
-	std::list<User *>	_banned;
+	std::map<const User *, int>	_users;
 	bool	_secret;
 	bool	_prv;
 	bool	_block_external_message;
@@ -45,7 +45,6 @@ private:
 	bool	_invite_only;
 	bool	_topic_change_restricted;
 	int	_limit;
-	// bool	_ban_hostmasks;
 public:
 	Channel(std::string name);
 	~Channel();
@@ -56,28 +55,17 @@ public:
 	const std::string	&getTopic() const;
 	void	setTopic(const std::string &key);
     //user getter setters
-	void	removeAllGroups(const User &user);
-	unsigned int	countUsers();
-	bool	findOperator(const User &user);
-	void	removeOperator(const User &user);
-	void	addOperator(User &user);
-	bool	findVoicePrio(const User &user);
-	void	removeVoicePrio(const User &user);
-	void	addVoicePrio(User &user);
-	bool	findNoPrio(const User &user);
-	void	removeNoPrio(const User &user);
-	void	addNoPrio(User &user);
-	bool	findBanned(const User &user);
-	void	removeBanned(const User &user);
-	void	addBanned(User &user);
-    //boolean getter setters
-	//--these could potentially be differently implemented:
+	// void	removeAllGroups(const User &user);
+	void	setPrivilege(const User &user, int priv);
+	size_t	countUsers();
+	int		findUser(const User &user);
+	void	removeUser(const User &user);
+	void	addUser(User &user, int privilege);
+	//bool gettter setters
 	const bool	&getSecret() const;
 	void	setSecret(const bool to);
 	const bool	&getPrivate() const;
 	void	setPrivate(const bool to);
-	//--my idea is to have three different lists of channels in the server class
-	//--this would make for three lists: normal, secret and private channels
 	const bool	&getBlockExternal() const;
 	void	setBlockExternal(const bool to);
 	const bool	&getModerated() const;
