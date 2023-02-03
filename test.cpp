@@ -5,7 +5,7 @@
 
 int main(void)
 {
-    Channel chan = Channel("pokemon");
+    Channel chan = Channel("pokemon", NONE);
     User    kewin = User(0);
     User    doush = User(1);
 
@@ -14,6 +14,16 @@ int main(void)
     // chan.findOperator(kewin);
     // chan.removeOperator(kewin);
     chan.setPrivilege(kewin, BANNED);
-    std::cout << chan.findUser(kewin) << std::endl;
+	std::cout << chan.checkModes(PRIV) << std::endl;
+	chan.setModes(PRIV | SECRET);
+	std::cout << chan.checkModes(PRIV | SECRET) << std::endl;
+	// std::cout << chan.checkModes(MODERATED) << std::endl;
+
+	std::cout << "-------------------------" << std::endl;
+
+	chan.removeModes(PRIV | SECRET);
+	std::cout << chan.checkModes(PRIV) << std::endl;
+	std::cout << chan.checkModes(SECRET) << std::endl;
+	std::cout << chan.checkModes(MODERATED) << std::endl;
     return (0);
 }

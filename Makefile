@@ -4,10 +4,10 @@ CPP := c++
 CPPFLAGS := -std=c++98
 
 
-SRC := Message.cpp Server.cpp User.cpp main.cpp commands.cpp
+SRC := Message.cpp Server.cpp User.cpp main.cpp commands.cpp Channel.cpp
 OBJ := $(SRC:.cpp=.o)
 
-DEPS := Message.hpp Server.hpp User.hpp
+DEPS := Message.hpp Server.hpp User.hpp Channel.hpp
 
 all: $(NAME)
 

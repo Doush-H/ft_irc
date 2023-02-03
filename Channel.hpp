@@ -7,7 +7,8 @@
 
 class	User;
 
-typedef enum	privilege { OPERATOR = 0, VOICE_PRIO = 1, NO_PRIO = 2, BANNED = 3, INVITED = 4 } priviledge;
+enum	privilege { OPERATOR = 0, VOICE_PRIO = 1, NO_PRIO = 2, BANNED = 3, INVITED = 4 };
+enum	modes { NONE = 0, SECRET = 1, PRIV = 2, MODERATED = 4, INVITE_ONLY = 8, TOPIC_RESTRICTED = 16 };
 
 //to figure out: users may be invisible, able to receive server notices, able to receive wallops, become IRC operator
 // potential problem: maybe some users will be able to have low voice prio and be operators (look into)
@@ -34,19 +35,20 @@ typedef enum	privilege { OPERATOR = 0, VOICE_PRIO = 1, NO_PRIO = 2, BANNED = 3, 
 class Channel
 {
 private:
-	const std::string	_name;
-	std::string	_channel_key;
-	std::string	_topic;
-	std::map<const User *, int>	_users;
-	bool	_secret;
-	bool	_prv;
-	bool	_block_external_message;
-	bool	_moderated;
-	bool	_invite_only;
-	bool	_topic_change_restricted;
-	int	_limit;
+	const std::string					_name;
+	std::string							_channel_key;
+	std::string							_topic;
+	std::map<const User *, privilege>	_users;
+	int									_modes;
+	// bool	_secret;
+	// bool	_prv;
+	// bool	_block_external_message;
+	// bool	_moderated;
+	// bool	_invite_only;
+	// bool	_topic_change_restricted;
+	// int	_limit;
 public:
-	Channel(std::string name);
+	Channel(std::string name, int modes);
 	~Channel();
     //string getter setters
 	const std::string	&getName() const;
@@ -56,28 +58,15 @@ public:
 	void	setTopic(const std::string &key);
     //user getter setters
 	// void	removeAllGroups(const User &user);
-	void	setPrivilege(const User &user, int priv);
+	void	setPrivilege(const User &user, privilege priv);
 	size_t	countUsers();
 	int		findUser(const User &user);
 	void	removeUser(const User &user);
-	void	addUser(User &user, int privilege);
-	//bool gettter setters
-	const bool	&getSecret() const;
-	void	setSecret(const bool to);
-	const bool	&getPrivate() const;
-	void	setPrivate(const bool to);
-	const bool	&getBlockExternal() const;
-	void	setBlockExternal(const bool to);
-	const bool	&getModerated() const;
-	void	setModerated(const bool to);
-	const bool	&getInviteOnly() const;
-	void	setInviteOnly(const bool to);
-	const bool	&getTopicChangeRestricted() const;
-	void	setTopicChangeRestricted(const bool to);
-	const int	&getLimit() const;
-	void	setLimit(const int to);
-	const bool	&getBanHostmasks() const;
-	void	setBanHostmasks(const bool to);
+	void	addUser(User &user, privilege privilege);
+	bool	checkModes(int modes);
+	void	setModes(int modes);
+	void	removeModes(int modes);
+	
 };
 
 #endif

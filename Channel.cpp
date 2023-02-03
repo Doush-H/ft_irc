@@ -1,15 +1,15 @@
 #include "Channel.hpp"
 #include "User.hpp"
 
-Channel::Channel(std::string name) : _name(name)
+Channel::Channel(std::string name, int modes) : _name(name), _modes(modes)
 {
-	_secret = false;
-	_prv = false;
-	_block_external_message = false;
-	_moderated = false;
-	_invite_only = false;
-	_topic_change_restricted = false;
-	_limit = -1;
+	// _secret = false;
+	// _prv = false;
+	// _block_external_message = false;
+	// _moderated = false;
+	// _invite_only = false;
+	// _topic_change_restricted = false;
+	// _limit = -1;
 }
 
 Channel::~Channel() {}
@@ -52,9 +52,9 @@ size_t	Channel::countUsers()
 	return (_users.size());
 }
 
-void	Channel::setPrivilege(const User &user, int priv)
+void	Channel::setPrivilege(const User &user, privilege priv)
 {
-	std::map<const User *, int>::iterator	it = _users.find(&user);
+	std::map<const User *, privilege>::iterator	it = _users.find(&user);
 
 	if (it == _users.end())
 		return ;
@@ -63,7 +63,7 @@ void	Channel::setPrivilege(const User &user, int priv)
 
 int	Channel::findUser(const User &user)
 {
-	std::map<const User *, int>::iterator	it = _users.find(&user);
+	std::map<const User *, privilege>::iterator	it = _users.find(&user);
 
 	if (it == _users.end())
 		return (-1);
@@ -75,83 +75,99 @@ void	Channel::removeUser(const User &user)
 	_users.erase(&user);
 }
 
-void	Channel::addUser(User &user, int priv)
+void	Channel::addUser(User &user, privilege priv)
 {
-	if (_limit != -1 && countUsers() >= _limit)
-		return ;
+	// if (_limit != -1 && countUsers() >= _limit)
+	// 	return ;
 	if (_users.find(&user) == _users.end())
-		_users.insert(std::pair<const User *, int>(&user, priv));
+		_users.insert(std::pair<const User *, privilege>(&user, priv));
 }
 
-const bool	&Channel::getSecret() const
+bool	Channel::checkModes(int modes) 
 {
-	return (_secret);
+	return modes == (_modes & modes);
 }
 
-void	Channel::setSecret(const bool to)
+void	Channel::setModes(int modes) 
 {
-	_secret = to;
+	_modes |= modes;
 }
 
-const bool	&Channel::getPrivate() const
+void	Channel::removeModes(int modes) 
 {
-	return (_prv);
+	_modes &= ~modes;
 }
 
-void	Channel::setPrivate(const bool to)
-{
-	_prv = to;
-}
 
-const bool	&Channel::getBlockExternal() const
-{
-	return (_block_external_message);
-}
+// const bool	&Channel::getSecret() const
+// {
+// 	return (_secret);
+// }
 
-void	Channel::setBlockExternal(const bool to)
-{
-	_block_external_message = to;
-}
+// void	Channel::setSecret(const bool to)
+// {
+// 	_secret = to;
+// }
 
-const bool	&Channel::getModerated() const
-{
-	return (_moderated);
-}
+// const bool	&Channel::getPrivate() const
+// {
+// 	return (_prv);
+// }
 
-void	Channel::setModerated(const bool to)
-{
-	_moderated = to;
-}
+// void	Channel::setPrivate(const bool to)
+// {
+// 	_prv = to;
+// }
 
-const bool	&Channel::getInviteOnly() const
-{
-	return (_invite_only);
-}
+// const bool	&Channel::getBlockExternal() const
+// {
+// 	return (_block_external_message);
+// }
 
-void	Channel::setInviteOnly(const bool to)
-{
-	_invite_only = to;
-}
+// void	Channel::setBlockExternal(const bool to)
+// {
+// 	_block_external_message = to;
+// }
 
-const bool	&Channel::getTopicChangeRestricted() const
-{
-	return (_topic_change_restricted);
-}
+// const bool	&Channel::getModerated() const
+// {
+// 	return (_moderated);
+// }
 
-void	Channel::setTopicChangeRestricted(const bool to)
-{
-	_topic_change_restricted = to;
-}
+// void	Channel::setModerated(const bool to)
+// {
+// 	_moderated = to;
+// }
 
-const int	&Channel::getLimit() const
-{
-	return (_limit);
-}
+// const bool	&Channel::getInviteOnly() const
+// {
+// 	return (_invite_only);
+// }
 
-void	Channel::setLimit(const int to)
-{
-	_limit = to;
-}
+// void	Channel::setInviteOnly(const bool to)
+// {
+// 	_invite_only = to;
+// }
+
+// const bool	&Channel::getTopicChangeRestricted() const
+// {
+// 	return (_topic_change_restricted);
+// }
+
+// void	Channel::setTopicChangeRestricted(const bool to)
+// {
+// 	_topic_change_restricted = to;
+// }
+
+// const int	&Channel::getLimit() const
+// {
+// 	return (_limit);
+// }
+
+// void	Channel::setLimit(const int to)
+// {
+// 	_limit = to;
+// }
 
 // const bool	&Channel::getBanHostmasks() const
 // {
