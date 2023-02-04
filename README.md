@@ -3,17 +3,17 @@ Simple Irc server (in progress)
 
 
 ## To-do:
-### Kevin:
-      - JOIN
-      - TOPIC
-### Doush:
-      - PRIVMSG
-      - QUIT
-      - USERS
+- ### Kevin:
+  - JOIN
+  - TOPIC
+- ### Doush:
+  - PRIVMSG
+  - QUIT
+  - USERS
      
-### On hold:
-      - MODE
-      - LIST
-      - PART
+- ### On hold:
+  - MODE
+  - LIST
+  - PART
 
-### Done:
+- ### Done:
