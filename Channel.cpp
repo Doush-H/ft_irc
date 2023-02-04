@@ -1,7 +1,7 @@
 #include "Channel.hpp"
 #include "User.hpp"
 
-Channel::Channel(std::string name, int modes) : _name(name), _modes(modes)
+Channel::Channel(std::string name, int modes) : _name(name), _modes(modes), _topic("No topic is set")
 {
 	// _secret = false;
 	// _prv = false;
@@ -34,9 +34,9 @@ const std::string	&Channel::getTopic() const
 	return (_topic);
 }
 
-void	Channel::setTopic(const std::string &key)
+void	Channel::setTopic(const std::string &topic)
 {
-	_channel_key = key;
+	_topic = topic;
 }
 
 // void	Channel::removeAllGroups(const User &user)

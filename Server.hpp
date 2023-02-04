@@ -162,6 +162,7 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				pingCommand(Message& msg);
 	std::map<User, std::string>				capCommand(Message& msg);
 	std::map<User, std::string>				joinCommand(Message& msg);
+	std::map<User, std::string>				topicCommand(Message& msg);
 	std::map<User, std::string>				privmsgCommand(Message& msg);
 	void						 			privmsgToUserCommand(Message& msg, std::map<User, std::string>* resp);
 	void									checkIfRegistered(Message& msg, std::map<User, std::string>* resp);

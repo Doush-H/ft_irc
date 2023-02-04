@@ -122,7 +122,7 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 			{
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 				addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
-					+ msg.getSenderUser().getName() + "@42irc.com JOIN :" + chanName);
+					+ msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + chanName);
 				return resp;
 			}
 		}
@@ -132,11 +132,48 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 			newchan.addUser(msg.getSenderUser(), OPERATOR);
 			_channels.insert(std::pair<std::string, Channel>(chanName, newchan));
 			addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
-					+ msg.getSenderUser().getName() + "@42irc.com JOIN :" + chanName);
+					+ msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + chanName);
 			return resp;
 		}
 	}
 	return resp;
+}
+
+std::map<User, std::string>	Server::topicCommand(Message& msg)
+{
+	std::map<User, std::string> resp;
+	std::list<std::string> msgParams = msg.getParams();
+
+	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+	} else if (!msg.getSenderUser().isRegistered()) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before using this command");
+	} else if (msg.getParams().size() == 1){
+		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
+		if (_channels.find(msgParams.front()) != _channels.end()) {
+			if (chan->second.getTopic().compare("No topic is set") == 0) {
+				// std::cout << "topic: " << chan->second.getTopic();
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "331 " + msg.getSenderUser().getNick() \
+					+ " " + msgParams.front() + " :No topic is set");
+			} else {
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "332 " + msg.getSenderUser().getNick() \
+					+ " " + msgParams.front() + " :" + chan->second.getTopic());
+			}
+		} else {
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
+				+ " " + msgParams.front() + " :No such channel");
+		}
+	} else if (msg.getParams().size() == 2){
+		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
+		if (!chan->second.checkModes(TOPIC_RESTRICTED) || chan->second.findUser(msg.getSenderUser()) == OPERATOR) {
+			chan->second.setTopic(msgParams.back());
+			addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
+				+ msg.getSenderUser().getName() + "@127.0.0.1 TOPIC " + msgParams.front() + " :" + msgParams.back());
+		} else {
+			;
+		}
+	}
+	return (resp);
 }
 
 std::map<User, std::string> Server::privmsgCommand(Message& msg) {
