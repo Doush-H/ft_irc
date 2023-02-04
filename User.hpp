@@ -14,6 +14,7 @@ private:
 
 public:
 	User(int fd);
+	User(const User& other);
 
 	//--------------- Getters and Setters ------------------
 	const std::string& getBuf() const;
@@ -38,6 +39,9 @@ public:
 
 	// Extends the users buffer
 	void extendBuffer(char buff[], size_t size);
+
+	// Operator overloads
+	bool operator<(const User& other) const;
 };
 
 

@@ -16,6 +16,7 @@
 # include "User.hpp"
 # include "Message.hpp"
 # include "Channel.hpp"
+# include <cstring>
 
 # define MSG_LEN 4096
 # define SERV_PREFIX ":42irc.com "
@@ -114,43 +115,57 @@ class SendingTheMsgFailedException : public std::exception {
 	// --------------------- Methods ------------------------
 
 	// Starts the server and contains the main loop
-	void 					start();
+	void 								start();
 
 	// Contains the setup of the server
-	void 					setupSocket();
+	void 								setupSocket();
 
 	// Accepts new users
-	void 					acceptUser();
+	void 								acceptUser();
 
 	// Reads , parses and responds to commands from user with index i in the poll array
-	void 					executeCommand(int i);
+	void 								executeCommand(int i);
 
 	// Removes a user from user map and poll array (should probably close the fds too)
-	void 					removeUser(int i);
+	void 								removeUser(int i);
 
 	// -------------------- Poll handling --------------------
 
 	// Adds the new users to poll array
-	void 					addToPoll(int fd);
+	void 								addToPoll(int fd);
 
 	// Removes user with index i from the poll array
-	void 					removeFromPoll(int i);
+	void 								removeFromPoll(int i);
 
 	// Find the correct command and call it
-	std::string				commandCall(Message& msg);
+	std::map<User, std::string>			commandCall(Message& msg);
 
 	// Send the response back to the user
-	void					sendResponse(const std::string& response, int userFd);
+	void								sendResponse(std::map<User, std::string>* responses);
 
+	// Util commands
+
+	/// @param resp the map to which you want to add a new response
+	/// @param reciever reciever of the new response
+	/// @param respMessage the message that's gonna be sent to the reciever
+
+	void								addResponse(std::map<User, std::string>* resp, const User& receiver, const std::string& respMessage);
+
+	// Returns an interator to the found user else an iterator pointing to _users.end()
+	std::map<int, User>::iterator		findUser(std::string nickName);
 	// -------------------- Commands (everyone of them will return the response that they generated) --------------------
+	// -------------------- The return from command functions is a map now in order to have the ability to send messages to multiple people at the same time --------------------
 
-	std::string				passCommand(Message& msg);
-	std::string 			nickCommand(Message& msg);
-	std::string 			userCommand(Message& msg);
-	std::string				pingCommand(Message& msg);
-	std::string				capCommand(Message& msg);
-	std::string				joinCommand(Message& msg);
-	void					checkIfRegistered(Message& msg, std::string& resp);
+	std::map<User, std::string>				passCommand(Message& msg);
+	std::map<User, std::string> 			nickCommand(Message& msg);
+	std::map<User, std::string> 			userCommand(Message& msg);
+	std::map<User, std::string>				pingCommand(Message& msg);
+	std::map<User, std::string>				capCommand(Message& msg);
+	std::map<User, std::string>				joinCommand(Message& msg);
+	std::map<User, std::string>				privmsgCommand(Message& msg);
+	void						 			privmsgToUserCommand(Message& msg, std::map<User, std::string>* resp);
+	void									checkIfRegistered(Message& msg, std::map<User, std::string>* resp);
+	void 									privmsgToChannelCommand(Message& msg, std::map<User, std::string>* resp);
 };
 
 

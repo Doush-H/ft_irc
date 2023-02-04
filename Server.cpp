@@ -1,5 +1,4 @@
 #include "Server.hpp"
-#include <cstring>
 
 int Server::getPort() const {
 	return _port;
@@ -150,6 +149,7 @@ void Server::acceptUser() {
 	socklen_t userLen = sizeof(user);
 	int connectedUserFd;
 	connectedUserFd = accept(_listeningSocket, (sockaddr *)&user, &userLen);
+	std::cout << "User connected on fd: " << connectedUserFd << std::endl;
 	if (connectedUserFd == -1)
 		throw FailedToAcceptConnectionException();
 	std::cout << "Client connected" << std::endl;
@@ -178,7 +178,7 @@ void Server::executeCommand(int i) {
 		user->extendBuffer(buf, recvBytes);
 
 		std::string cmd;
-		std::string response;
+		std::map<User, std::string> responses;
 
 		// Going to execute commands until there's nothing to execute anymore
 		while (!(cmd = user->getCommand()).empty()) {
@@ -187,10 +187,10 @@ void Server::executeCommand(int i) {
 			Message message = Message::parseBuf(cmd);
 			message.setSenderUser(user);
 			// Execute and get a response
-			response = commandCall(message);
+			responses = commandCall(message);
 			// Send back response
 			try {
-				sendResponse(response, userFd);
+				sendResponse(&responses);
 			} catch (std::exception& e) {
 				std::cout << e.what() << std::endl;
 			}
@@ -198,8 +198,8 @@ void Server::executeCommand(int i) {
 	}
 }
 
-std::string Server::commandCall(Message& msg) {
-	std::string response;
+std::map<User, std::string> Server::commandCall(Message& msg) {
+	std::map<User, std::string> response;
 	if (msg.getCommand() == "PASS") {
 		response = passCommand(msg);
 	} else if (msg.getCommand() == "NICK") {
@@ -212,18 +212,25 @@ std::string Server::commandCall(Message& msg) {
 		response = capCommand(msg);
 	} else if (msg.getCommand() == "JOIN") {
 		response = joinCommand(msg);
+	} else if (msg.getCommand() == "PRIVMSG") {
+		response = privmsgCommand(msg);
 	} else {
-		response = SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand();
+		response.insert(std::pair<User, std::string>(msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand()));
 	}
-	response += "\r\n";
 	return response;
 }
 
-void Server::sendResponse(const std::string& response, int userFd) {
-	ssize_t sendBytes = send(userFd, response.c_str(), response.length(), 0);
-	if (sendBytes == -1)
-		throw SendingTheMsgFailedException();
-	std::cout << "|" << response << "| was successfully sent to the user" << std::endl;
+void Server::sendResponse(std::map<User, std::string>* responses) {
+	std::map<User, std::string>::iterator it = responses->begin();
+	ssize_t sendBytes;
+	while (it != responses->end()) {
+		it->second.append("\r\n");
+		sendBytes = send(it->first.getUserFd(), it->second.c_str(), it->second.length(), 0);
+		if (sendBytes == -1)
+			throw SendingTheMsgFailedException();
+		std::cout << "|" << it->second << "| was successfully sent to " + it->first.getNick() + "\n" << std::endl;
+		it++;
+	}
 }
 
 void Server::removeUser(int i) {

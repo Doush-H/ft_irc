@@ -6,6 +6,20 @@ User::User(int fd) {
 	_userFd = fd;
 }
 
+User::User(const User& other) {
+	_allowConnection = other.isAllowConnection();
+	_isRegistered = other.isRegistered();
+	_userFd = other.getUserFd();
+	_nick = other.getNick();
+	_name = other.getName();
+	_fullName = other.getFullName();
+}
+
+//------------------ Operator overloads --------------------
+bool User::operator<(const User& other) const{
+	return (_userFd < other.getUserFd());
+}
+
 //------------------ Getters and Setters --------------------
 
 const std::string& User::getBuf() const {

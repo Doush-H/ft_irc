@@ -1,18 +1,23 @@
 #include "Server.hpp"
 
-void Server::checkIfRegistered(Message& msg, std::string& resp) {
+void Server::addResponse(std::map<User, std::string>* resp, const User& receiver, const std::string& respMessage) {
+	resp->insert(std::pair<User, std::string>(receiver, respMessage));
+}
+
+
+void Server::checkIfRegistered(Message& msg, std::map<User, std::string>* resp) {
 	if (!msg.getSenderUser().getFullName().empty() && !msg.getSenderUser().getNick().empty() && msg.getSenderUser().isAllowConnection() && !msg.getSenderUser().isRegistered()) {
-		resp = SERV_PREFIX "001 " + msg.getSenderUser().getNick() + " :Welcome to our irc server " + msg.getSenderUser().getNick();
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "001 " + msg.getSenderUser().getNick() + " :Welcome to our irc server " + msg.getSenderUser().getNick());
 		msg.getSenderUser().setIsRegistered(true);
 	}
 }
 
-std::string Server::passCommand(Message& msg){
-	std::string resp;
+std::map<User, std::string> Server::passCommand(Message& msg){
+	std::map<User, std::string> resp;
 	if (msg.getParams().size() != 1) {
-		resp = SERV_PREFIX "461 :Wrong number of parameters";
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Wrong number of parameters");
 	} else if (msg.getSenderUser().isRegistered()) {
-		resp = SERV_PREFIX "462 :You're already registered";
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :You're already registered");
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputPass = params.front();
@@ -20,18 +25,18 @@ std::string Server::passCommand(Message& msg){
 			msg.getSenderUser().setAllowConnection(true);
 		} else {
 			msg.getSenderUser().setAllowConnection(false);
-			resp = SERV_PREFIX "464 * :Password incorrect";
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "464 * :Password incorrect");
 		}
 	}
 	return resp;
 }
 
-std::string Server::nickCommand(Message& msg){
-	std::string resp;
+std::map<User, std::string> Server::nickCommand(Message& msg){
+	std::map<User, std::string> resp;
 	if (msg.getParams().size() != 1) {
-		resp = SERV_PREFIX "431 :No nick name was given";
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "431 :No nick name was given");
 	} else if (!msg.getSenderUser().isAllowConnection()) {
-		resp = SERV_PREFIX "462 :Please provide the server password with PASS command before registration";
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please provide the server password with PASS command before registration");
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputNick = params.front();
@@ -42,25 +47,25 @@ std::string Server::nickCommand(Message& msg){
 		while (it != eit) {
 			if (it->second.getNick() == inputNick) {
 				setName = false;
-				resp = SERV_PREFIX "433 " + inputNick + " :Nickname is already in use";
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "433 " + inputNick + " :Nickname is already in use");
 			}
 			it++;
 		}
 		if (setName)
 			msg.getSenderUser().setNick(inputNick);
 	}
-	checkIfRegistered(msg, resp);
+	checkIfRegistered(msg, &resp);
 	return resp;
 }
 
-std::string Server::userCommand(Message& msg){
-	std::string resp;
+std::map<User, std::string> Server::userCommand(Message& msg){
+	std::map<User, std::string> resp;
 	if (msg.getParams().size() != 4) {
-		resp = SERV_PREFIX "461 :Not all parameters were provided";
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isAllowConnection()) {
-		resp = SERV_PREFIX "462 :Please provide the server password with PASS command before registration";
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please provide the server password with PASS command before registration");
 	} else if (msg.getSenderUser().isRegistered()) {
-		resp = SERV_PREFIX "462 :You can not change your user details after registration";
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :You can not change your user details after registration");
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputName = params.front();
@@ -68,35 +73,37 @@ std::string Server::userCommand(Message& msg){
 		msg.getSenderUser().setName(inputName);
 		msg.getSenderUser().setFullName(inputFullName);
 	}
-	checkIfRegistered(msg, resp);
+	checkIfRegistered(msg, &resp);
 	return resp;
 }
 
-std::string Server::pingCommand(Message& msg){
-	std::string resp;
+std::map<User, std::string> Server::pingCommand(Message& msg){
+	std::map<User, std::string> resp;
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {
-		resp = SERV_PREFIX "461 :Wrong number of parameters";
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Wrong number of parameters");
 	} else {
 		std::list<std::string> params = msg.getParams();
-		resp = "PONG :" + params.front();
+		addResponse(&resp, msg.getSenderUser(), "PONG :" + params.front());
 	}
 	return resp;
 }
 
-std::string Server::capCommand(Message& msg){
-	std::string resp;
+std::map<User, std::string> Server::capCommand(Message& msg){
+	std::map<User, std::string> resp;
 	if (msg.getParams().front() == "LS")
-		resp = "CAP * LS :End of CAP LS negotiation";
+		addResponse(&resp, msg.getSenderUser(), "CAP * LS :End of CAP LS negotiation");
 	return resp;
 }
 
-std::string Server::joinCommand(Message& msg){
-	std::string resp;
+std::map<User, std::string> Server::joinCommand(Message& msg){
+	std::map<User, std::string> resp;
 
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {
-		return (SERV_PREFIX "461 :Not all parameters were provided");
-	} else if (!msg.getSenderUser().isAllowConnection() || !msg.getSenderUser().isAllowConnection()) {
-		return (SERV_PREFIX "462 :Please log in before joining any channels");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+		return resp;
+	} else if (!msg.getSenderUser().isRegistered()) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
+		return resp;
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string chanName = params.front();
@@ -106,13 +113,17 @@ std::string Server::joinCommand(Message& msg){
 			std::string key = params.back();
 			if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key)
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
-			else if (msg.getParams().size() == 2)
-				return (SERV_PREFIX "475 :Cannot join channel, invalid key");
+			else if (msg.getParams().size() == 2) 
+			{
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 :Cannot join channel, invalid key");
+				return resp;
+			}
 			else
 			{
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
-				return (SERV_PREFIX "JOIN " + chanName + "\r\n:" + msg.getSenderUser().getNick() + "!" \
+				addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
 					+ msg.getSenderUser().getName() + "@42irc.com JOIN :" + chanName);
+				return resp;
 			}
 		}
 		else
@@ -120,9 +131,70 @@ std::string Server::joinCommand(Message& msg){
 			Channel	newchan	= Channel(chanName, 0);
 			newchan.addUser(msg.getSenderUser(), OPERATOR);
 			_channels.insert(std::pair<std::string, Channel>(chanName, newchan));
-			return (SERV_PREFIX "JOIN " + chanName + "\r\n:" + msg.getSenderUser().getNick() + "!" \
+			addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
 					+ msg.getSenderUser().getName() + "@42irc.com JOIN :" + chanName);
+			return resp;
 		}
 	}
 	return resp;
+}
+
+std::map<User, std::string> Server::privmsgCommand(Message& msg) {
+	std::map<User, std::string> resp;
+	std::list<std::string> msgParams = msg.getParams();
+
+	if (msgParams.size() != 2) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+	} else if (msgParams.front().at(0) == '#' || msgParams.front().at(0) == '&') {
+		privmsgToChannelCommand(msg, &resp);
+	} else {
+		privmsgToUserCommand(msg, &resp);
+	}
+	return resp;
+}
+
+std::list<std::string> getUsers(std::string str);
+
+void Server::privmsgToUserCommand(Message& msg, std::map<User, std::string>* resp) {
+	std::string senderPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName();
+	std::string senderMessage = msg.getParams().back();
+	std::list<std::string> users = getUsers(msg.getParams().front());
+	std::list<std::string>::iterator it = users.begin();
+	while (it != users.end()) {
+		std::map<int, User>::iterator userIt = findUser(*it);
+		if (userIt != _users.end()) {
+			addResponse(resp, userIt->second, senderPrefix + " PRIVMSG " + userIt->second.getNick() + " :" + senderMessage);
+		} else {
+			resp->clear();
+			addResponse(resp, msg.getSenderUser(), SERV_PREFIX "401 " + msg.getSenderUser().getNick() + " " + *it + " :No such nick/channel");
+		}
+		it++;
+	}
+}
+
+std::map<int, User>::iterator Server::findUser(std::string nickName) {
+	std::map<int, User>::iterator it = _users.begin();
+	while (it != _users.end()) {
+		if (it->second.getNick() == nickName) {
+			return it;
+		}
+		it++;
+	}
+	return it;
+}
+
+std::list<std::string> getUsers(std::string str) {
+	char* buf = const_cast<char*>(str.c_str());
+	char *user = strtok(buf, ",");
+
+	std::list<std::string> userList;
+	while (user != NULL) {
+		userList.push_back(user);
+		user = strtok(NULL, ",");
+	}
+	return userList;
+}
+
+void Server::privmsgToChannelCommand(Message& msg, std::map<User, std::string>* resp) {
+
 }
