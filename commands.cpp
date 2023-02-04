@@ -89,3 +89,4 @@ std::string Server::capCommand(Message& msg){
 		resp = "CAP * LS :End of CAP LS negotiation";
 	return resp;
 }
+
