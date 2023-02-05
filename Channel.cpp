@@ -61,9 +61,9 @@ void	Channel::setPrivilege(const User &user, privilege priv)
 	it->second = priv;
 }
 
-int	Channel::findUser(const User &user)
+int	Channel::findUser(const User &user) const
 {
-	std::map<const User *, privilege>::iterator	it = _users.find(&user);
+	std::map<const User *, privilege>::const_iterator	it = _users.find(&user);
 
 	if (it == _users.end())
 		return (-1);
@@ -116,6 +116,9 @@ void	Channel::removeModes(int modes)
 	_modes &= ~modes;
 }
 
+const std::map<const User *, privilege>& Channel::getUsersMap() const {
+	return _users;
+}
 
 // const bool	&Channel::getSecret() const
 // {

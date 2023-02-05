@@ -51,23 +51,23 @@ public:
 	Channel(std::string name, int modes);
 	~Channel();
     //string getter setters
-	const std::string	&getName() const;
-	const std::string	&getChannelKey() const;
-	void	setChannelKey(const std::string &key);
-	const std::string	&getTopic() const;
-	void	setTopic(const std::string &key);
+	const std::string&								getName() const;
+	const std::string&								getChannelKey() const;
+	void											setChannelKey(const std::string &key);
+	const std::string&								getTopic() const;
+	void											setTopic(const std::string &key);
     //user getter setters
 	// void	removeAllGroups(const User &user);
-	void	setPrivilege(const User &user, privilege priv);
-	size_t	countUsers();
-	int		findUser(const User &user);
-	void	removeUser(const User &user);
-	void	addUser(User &user, privilege privilege);
-	const std::string	constructWho(const User &user);
-	bool	checkModes(int modes);
-	void	setModes(int modes);
-	void	removeModes(int modes);
-	
+	void											setPrivilege(const User &user, privilege priv);
+	size_t											countUsers();
+	int												findUser(const User &user) const;
+	void											removeUser(const User &user);
+	void											addUser(User &user, privilege privilege);
+	const std::string								constructWho(const User &user);
+	bool											checkModes(int modes);
+	void											setModes(int modes);
+	void											removeModes(int modes);
+	const std::map<const User *, privilege>&		getUsersMap() const;
 };
 
 #endif

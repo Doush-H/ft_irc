@@ -143,16 +143,24 @@ class SendingTheMsgFailedException : public std::exception {
 	// Send the response back to the user
 	void								sendResponse(std::map<User, std::string>* responses);
 
-	// Util commands
+	// ----------------------- Util commands ---------------------------
 
 	/// @param resp the map to which you want to add a new response
 	/// @param reciever reciever of the new response
 	/// @param respMessage the message that's gonna be sent to the reciever
-
 	void								addResponse(std::map<User, std::string>* resp, const User& receiver, const std::string& respMessage);
 
 	// Returns an interator to the found user else an iterator pointing to _users.end()
-	std::map<int, User>::iterator		findUser(std::string nickName);
+	std::map<int, User>::iterator		findUserByNick(std::string nickName);
+
+	/// @param resp the response map to which the responses will be added
+	/// @param channel the channel to which the message will be sent
+	/// @param message the message that will be sent to the channel
+	void 									sendToChannel(std::map<User, std::string>* resp, Channel* channel, const std::string& message);
+
+	// checks if the user who sent the message is registered, if yes then it will add the welcome message
+	void									checkIfRegistered(Message& msg, std::map<User, std::string>* resp);
+
 	// -------------------- Commands (everyone of them will return the response that they generated) --------------------
 	// -------------------- The return from command functions is a map now in order to have the ability to send messages to multiple people at the same time --------------------
 
@@ -165,9 +173,12 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				topicCommand(Message& msg);
 	std::map<User, std::string>				privmsgCommand(Message& msg);
 	std::map<User, std::string>				whoCommand(Message& msg);
+	void 									whoEveryone(std::map<User, std::string>* resp, Message* msg, const std::string& mask);
+	void 									whoChannel(std::map<User, std::string>* resp, Message* msg, const Channel& channel, int priv);
+	void 									whoOneParam(std::map<User, std::string>* resp, Message* msg);
+	void 									whoTwoParam(std::map<User, std::string>* resp, Message* msg);
 	std::map<User, std::string>				partCommand(Message& msg);
 	void						 			privmsgToUserCommand(Message& msg, std::map<User, std::string>* resp);
-	void									checkIfRegistered(Message& msg, std::map<User, std::string>* resp);
 	void 									privmsgToChannelCommand(Message& msg, std::map<User, std::string>* resp);
 };
 
