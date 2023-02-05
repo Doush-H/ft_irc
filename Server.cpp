@@ -216,6 +216,8 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 		response = privmsgCommand(msg);
 	} else if (msg.getCommand() == "TOPIC") {
 		response = topicCommand(msg);
+	} else if (msg.getCommand() == "WHO") {
+		response = whoCommand(msg);
 	} else {
 		response.insert(std::pair<User, std::string>(msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand()));
 	}

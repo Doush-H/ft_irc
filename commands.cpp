@@ -100,40 +100,29 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
-		return resp;
 	} else if (!msg.getSenderUser().isRegistered()) {
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
-		return resp;
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string chanName = params.front();
 		std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
-		if (chan != _channels.end())
-		{
+		if (chan != _channels.end()) {
 			std::string key = params.back();
-			if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key)
+			if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key) {
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
-			else if (msg.getParams().size() == 2) 
-			{
+			} else if (msg.getParams().size() == 2) {
 				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 :Cannot join channel, invalid key");
-				return resp;
-			}
-			else
-			{
+			} else {
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 				addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
 					+ msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + chanName);
-				return resp;
 			}
-		}
-		else
-		{
+		} else {
 			Channel	newchan	= Channel(chanName, 0);
 			newchan.addUser(msg.getSenderUser(), OPERATOR);
 			_channels.insert(std::pair<std::string, Channel>(chanName, newchan));
 			addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
 					+ msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + chanName);
-			return resp;
 		}
 	}
 	return resp;
@@ -152,7 +141,6 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
 		if (_channels.find(msgParams.front()) != _channels.end()) {
 			if (chan->second.getTopic().compare("No topic is set") == 0) {
-				// std::cout << "topic: " << chan->second.getTopic();
 				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "331 " + msg.getSenderUser().getNick() \
 					+ " " + msgParams.front() + " :No topic is set");
 			} else {
@@ -170,10 +158,65 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 			addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
 				+ msg.getSenderUser().getName() + "@127.0.0.1 TOPIC " + msgParams.front() + " :" + msgParams.back());
 		} else {
-			;
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " \
+				+ msgParams.front() + " :You're not channel operator");
 		}
 	}
-	return (resp);
+	return resp;
+}
+
+std::map<User, std::string>	Server::whoCommand(Message& msg)
+{
+	//for now I will not do the operator flag, because it makes for a lot of if else statements
+	std::map<User, std::string> resp;
+	std::list<std::string> msgParams = msg.getParams();
+
+	if (msg.getParams().size() > 1) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+	} else if (!msg.getSenderUser().isRegistered()) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
+	} else if (msg.getParams().size() == 0){
+		std::map<int, User>::iterator	it = _users.begin();
+
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
+			+ msg.getSenderUser().getNick() + " 42irc.com " + msg.getSenderUser().getNick() + " :" \
+			+ msg.getSenderUser().getFullName());
+		for (; it != _users.end(); it++)
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
+				+ msg.getSenderUser().getNick() + " 42irc.com " + it->second.getNick() + " :" \
+				+ it->second.getFullName());
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "315 " + msg.getSenderUser().getNick() + " * " \
+			+ msg.getSenderUser().getNick() + " 42irc.com " + msg.getSenderUser().getNick() + " :" \
+			+ msg.getSenderUser().getFullName());
+	} else if (msg.getParams().size() == 1){
+		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
+		if (chan == _channels.end())
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
+				+ " " + msgParams.front() + " :No such channel");
+		else
+		{
+			// problem: I need to now be able to iterate through the _users list inside of _channels, but i can't
+			
+			// zzz
+		
+			// std::map<int, User>::iterator	it = chan->second.;
+			;
+			// addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
+			// 	+ msg.getSenderUser().getNick() + " 42irc.com " + msg.getSenderUser().getNick() + " H :" \
+			// 	+ msg.getSenderUser().getFullName());
+			// for (; it != _users.end(); it++)
+			// {
+			// 	addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
+			// 		+ msg.getSenderUser().getNick() + " 42irc.com " + it->second.getNick() + " H :" \
+			// 		+ it->second.getFullName());
+			// }
+			// addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "315 " + msg.getSenderUser().getNick() + " * " \
+			// 	+ msg.getSenderUser().getNick() + " 42irc.com " + msg.getSenderUser().getNick() + " H :" \
+			// 	+ msg.getSenderUser().getFullName());
+		}
+
+	}
+	return resp;
 }
 
 std::map<User, std::string> Server::privmsgCommand(Message& msg) {

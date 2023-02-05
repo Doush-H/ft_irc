@@ -4,8 +4,8 @@ Simple Irc server (in progress)
 
 ## To-do:
 - ### Kevin:
-  - LIST
   - PART
+  - WHO (new)
 
 - ### Doush:
   - PRIVMSG
@@ -13,6 +13,7 @@ Simple Irc server (in progress)
   - USERS
      
 - ### On hold:
+  - LIST
   - MODE
 
 - ### Done:
