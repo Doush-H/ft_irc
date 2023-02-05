@@ -182,11 +182,11 @@ std::map<User, std::string>	Server::whoCommand(Message& msg)
 		std::string					constructedString;
 
 		constructedString += SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
-			+ msg.getSenderUser().getName() + " 42irc.com * :" + msg.getSenderUser().getFullName() + "\n\r";
+			+ msg.getSenderUser().getNick() + " 42irc.com * :" + msg.getSenderUser().getFullName() + "\n\r";
 		for (; it != _users.end(); it++)
 			if (&msg.getSenderUser() != &it->second && _users.size() > 1)
 				constructedString += SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
-					+ msg.getSenderUser().getNick() + " 42irc.com * :" + it->second.getFullName() + "\n\r";
+					+ it->second.getNick() + " 42irc.com * :" + it->second.getFullName() + "\n\r";
 		constructedString += ":42irc.com 315 " + msg.getSenderUser().getNick() + " * :End of /WHO list";
 		addResponse(&resp, msg.getSenderUser(), constructedString);
 	} else if (msg.getParams().size() == 1){
