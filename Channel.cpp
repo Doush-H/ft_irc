@@ -83,6 +83,20 @@ void	Channel::addUser(User &user, privilege priv)
 		_users.insert(std::pair<const User *, privilege>(&user, priv));
 }
 
+const std::string	Channel::constructWho(const User &user)
+{
+	std::string	ret;
+	std::map<const User *, privilege>::iterator	it = _users.begin();
+
+	ret += ":42irc.com 352 " + user.getNick() + " * " + user.getNick() \
+		+ " 42irc.com " + user.getNick() + " :" + user.getFullName() + "\n\r";
+	for (; it != _users.end(); it++)
+		ret += ":42irc.com 352 " + user.getNick() + " * " + user.getNick() \
+			+ " 42irc.com " + it->first->getNick() + " :" + it->first->getFullName() + "\n\r";
+	ret +=  ":42irc.com 315 " + user.getNick() + " * :End of /WHO list";
+	return ret;
+}
+
 bool	Channel::checkModes(int modes) 
 {
 	return modes == (_modes & modes);

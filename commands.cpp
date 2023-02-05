@@ -97,27 +97,29 @@ std::map<User, std::string> Server::capCommand(Message& msg){
 
 std::map<User, std::string> Server::joinCommand(Message& msg){
 	std::map<User, std::string> resp;
+	std::list<std::string> params = msg.getParams();
 
-	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {
+	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {	//command valid for 1 to 2 params
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
-	} else if (!msg.getSenderUser().isRegistered()) {
+	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
 	} else {
-		std::list<std::string> params = msg.getParams();
 		std::string chanName = params.front();
 		std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
-		if (chan != _channels.end()) {
+		if (chan != _channels.end()) {	//case channel is found, join it as a regular user (no priority)
 			std::string key = params.back();
-			if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key) {
+			if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key) {	//if key is required, accept if key is correct
+				addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
+					+ msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + chanName);
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
-			} else if (msg.getParams().size() == 2) {
+			} else if (msg.getParams().size() == 2) {	//else reject if key is incorrect
 				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 :Cannot join channel, invalid key");
-			} else {
+			} else {	//if no key then join the channel directly
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 				addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
 					+ msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + chanName);
 			}
-		} else {
+		} else {	//if channel does not exist, create one and add the user as an operator
 			Channel	newchan	= Channel(chanName, 0);
 			newchan.addUser(msg.getSenderUser(), OPERATOR);
 			_channels.insert(std::pair<std::string, Channel>(chanName, newchan));
@@ -133,31 +135,31 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 	std::map<User, std::string> resp;
 	std::list<std::string> msgParams = msg.getParams();
 
-	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {
+	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {	//command valid for 1 to 2 params
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
-	} else if (!msg.getSenderUser().isRegistered()) {
+	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before using this command");
-	} else if (msg.getParams().size() == 1){
+	} else if (msg.getParams().size() == 1){	//case check topic
 		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
-		if (_channels.find(msgParams.front()) != _channels.end()) {
-			if (chan->second.getTopic().compare("No topic is set") == 0) {
+		if (_channels.find(msgParams.front()) != _channels.end()) {	//case channel found, print topic
+			if (chan->second.getTopic().compare("No topic is set") == 0) {	//if there is no topic, return as such
 				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "331 " + msg.getSenderUser().getNick() \
 					+ " " + msgParams.front() + " :No topic is set");
-			} else {
+			} else {	//if there is a topic, return as such
 				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "332 " + msg.getSenderUser().getNick() \
 					+ " " + msgParams.front() + " :" + chan->second.getTopic());
 			}
-		} else {
+		} else {	//if channel not found return relevant error
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
 				+ " " + msgParams.front() + " :No such channel");
 		}
-	} else if (msg.getParams().size() == 2){
+	} else if (msg.getParams().size() == 2){	//case change topic
 		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
-		if (!chan->second.checkModes(TOPIC_RESTRICTED) || chan->second.findUser(msg.getSenderUser()) == OPERATOR) {
+		if (!chan->second.checkModes(TOPIC_RESTRICTED) || chan->second.findUser(msg.getSenderUser()) == OPERATOR) {	//if user has the right privileges then set new topic
 			chan->second.setTopic(msgParams.back());
 			addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
 				+ msg.getSenderUser().getName() + "@127.0.0.1 TOPIC " + msgParams.front() + " :" + msgParams.back());
-		} else {
+		} else {	//otherwise reject change and return relevant error
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " \
 				+ msgParams.front() + " :You're not channel operator");
 		}
@@ -195,26 +197,9 @@ std::map<User, std::string>	Server::whoCommand(Message& msg)
 				+ " " + msgParams.front() + " :No such channel");
 		else
 		{
+			addResponse(&resp, msg.getSenderUser(), chan->second.constructWho(msg.getSenderUser()));
 			// problem: I need to now be able to iterate through the _users list inside of _channels, but i can't
-			
-			// zzz
-		
-			// std::map<int, User>::iterator	it = chan->second.;
-			;
-			// addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
-			// 	+ msg.getSenderUser().getNick() + " 42irc.com " + msg.getSenderUser().getNick() + " H :" \
-			// 	+ msg.getSenderUser().getFullName());
-			// for (; it != _users.end(); it++)
-			// {
-			// 	addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
-			// 		+ msg.getSenderUser().getNick() + " 42irc.com " + it->second.getNick() + " H :" \
-			// 		+ it->second.getFullName());
-			// }
-			// addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "315 " + msg.getSenderUser().getNick() + " * " \
-			// 	+ msg.getSenderUser().getNick() + " 42irc.com " + msg.getSenderUser().getNick() + " H :" \
-			// 	+ msg.getSenderUser().getFullName());
 		}
-
 	}
 	return resp;
 }

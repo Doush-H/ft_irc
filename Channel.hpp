@@ -63,6 +63,7 @@ public:
 	int		findUser(const User &user);
 	void	removeUser(const User &user);
 	void	addUser(User &user, privilege privilege);
+	const std::string	constructWho(const User &user);
 	bool	checkModes(int modes);
 	void	setModes(int modes);
 	void	removeModes(int modes);
