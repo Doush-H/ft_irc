@@ -179,27 +179,23 @@ std::map<User, std::string>	Server::whoCommand(Message& msg)
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
 	} else if (msg.getParams().size() == 0){
 		std::map<int, User>::iterator	it = _users.begin();
+		std::string					constructedString;
 
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
-			+ msg.getSenderUser().getNick() + " 42irc.com " + msg.getSenderUser().getNick() + " :" \
-			+ msg.getSenderUser().getFullName());
+		constructedString += SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
+			+ msg.getSenderUser().getName() + " 42irc.com * :" + msg.getSenderUser().getFullName() + "\n\r";
 		for (; it != _users.end(); it++)
-			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
-				+ msg.getSenderUser().getNick() + " 42irc.com " + it->second.getNick() + " :" \
-				+ it->second.getFullName());
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "315 " + msg.getSenderUser().getNick() + " * " \
-			+ msg.getSenderUser().getNick() + " 42irc.com " + msg.getSenderUser().getNick() + " :" \
-			+ msg.getSenderUser().getFullName());
+			if (&msg.getSenderUser() != &it->second && _users.size() > 1)
+				constructedString += SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
+					+ msg.getSenderUser().getNick() + " 42irc.com * :" + it->second.getFullName() + "\n\r";
+		constructedString += ":42irc.com 315 " + msg.getSenderUser().getNick() + " * :End of /WHO list";
+		addResponse(&resp, msg.getSenderUser(), constructedString);
 	} else if (msg.getParams().size() == 1){
 		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
 		if (chan == _channels.end())
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
 				+ " " + msgParams.front() + " :No such channel");
 		else
-		{
 			addResponse(&resp, msg.getSenderUser(), chan->second.constructWho(msg.getSenderUser()));
-			// problem: I need to now be able to iterate through the _users list inside of _channels, but i can't
-		}
 	}
 	return resp;
 }

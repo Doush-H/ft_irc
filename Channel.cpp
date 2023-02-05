@@ -88,11 +88,12 @@ const std::string	Channel::constructWho(const User &user)
 	std::string	ret;
 	std::map<const User *, privilege>::iterator	it = _users.begin();
 
-	ret += ":42irc.com 352 " + user.getNick() + " * " + user.getNick() \
-		+ " 42irc.com " + user.getNick() + " :" + user.getFullName() + "\n\r";
+	ret += ":42irc.com 352 " + user.getNick() + " " + user.getNick() \
+		+ " 42irc.com " + user.getNick() + " H :" + user.getFullName() + "\n\r";
 	for (; it != _users.end(); it++)
-		ret += ":42irc.com 352 " + user.getNick() + " * " + user.getNick() \
-			+ " 42irc.com " + it->first->getNick() + " :" + it->first->getFullName() + "\n\r";
+		if (&user != it->first)
+			ret += ":42irc.com 352 " + user.getNick() + " " + user.getNick() \
+				+ " 42irc.com " + it->first->getNick() + " H :" + it->first->getFullName() + "\n\r";
 	ret +=  ":42irc.com 315 " + user.getNick() + " * :End of /WHO list";
 	return ret;
 }
