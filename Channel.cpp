@@ -83,14 +83,14 @@ void	Channel::addUser(User &user, privilege priv)
 		_users.insert(std::pair<const User *, privilege>(&user, priv));
 }
 
+#include <iostream>
+
 const std::string	Channel::constructWho(const User &user)
 {
 	std::string	ret;
 	std::map<const User *, privilege>::iterator	it = _users.begin();
 
-//constructedString += SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
-	+ msg.getSenderUser().getNick() + " 42irc.com * :" + msg.getSenderUser().getFullName() + "\n\r";
-
+	std::cout << "here instead\n";
 	ret += ":42irc.com 352 " + user.getNick() + " * " + user.getNick() \
 		+ " 42irc.com * :" + user.getFullName() + "\n\r";
 	for (; it != _users.end(); it++)

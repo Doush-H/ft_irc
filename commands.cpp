@@ -181,6 +181,7 @@ std::map<User, std::string>	Server::whoCommand(Message& msg)
 		std::map<int, User>::iterator	it = _users.begin();
 		std::string					constructedString;
 
+		std::cout << "goes here\n";
 		constructedString += SERV_PREFIX "352 " + msg.getSenderUser().getNick() + " * " \
 			+ msg.getSenderUser().getNick() + " 42irc.com * :" + msg.getSenderUser().getFullName() + "\n\r";
 		for (; it != _users.end(); it++)
@@ -196,6 +197,31 @@ std::map<User, std::string>	Server::whoCommand(Message& msg)
 				+ " " + msgParams.front() + " :No such channel");
 		else
 			addResponse(&resp, msg.getSenderUser(), chan->second.constructWho(msg.getSenderUser()));
+	}
+	return resp;
+}
+
+std::map<User, std::string>	Server::partCommand(Message& msg)
+{
+	std::map<User, std::string> resp;
+	std::list<std::string> msgParams = msg.getParams();
+
+	if (msg.getParams().size() != 1) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+	} else if (!msg.getSenderUser().isRegistered()) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
+	} else {
+		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
+		if (chan == _channels.end()){
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
+				+ " " + msgParams.front() + " 403 :No such channel");
+		} else if (chan->second.findUser(msg.getSenderUser()) == -1){
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 :You're not on that channel");
+		} else {
+			chan->second.removeUser(msg.getSenderUser());
+			addResponse(&resp, msg.getSenderUser(),":" + msg.getSenderUser().getNick() + "!" \
+				+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front());
+		}
 	}
 	return resp;
 }

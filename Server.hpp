@@ -165,6 +165,7 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				topicCommand(Message& msg);
 	std::map<User, std::string>				privmsgCommand(Message& msg);
 	std::map<User, std::string>				whoCommand(Message& msg);
+	std::map<User, std::string>				partCommand(Message& msg);
 	void						 			privmsgToUserCommand(Message& msg, std::map<User, std::string>* resp);
 	void									checkIfRegistered(Message& msg, std::map<User, std::string>* resp);
 	void 									privmsgToChannelCommand(Message& msg, std::map<User, std::string>* resp);
