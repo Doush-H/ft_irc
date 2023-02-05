@@ -59,12 +59,12 @@ public:
     //user getter setters
 	// void	removeAllGroups(const User &user);
 	void											setPrivilege(const User &user, privilege priv);
-	size_t											countUsers();
+	size_t											countUsers() const;
 	int												findUser(const User &user) const;
 	void											removeUser(const User &user);
 	void											addUser(User &user, privilege privilege);
 	const std::string								constructWho(const User &user);
-	bool											checkModes(int modes);
+	bool											checkModes(int modes) const;
 	void											setModes(int modes);
 	void											removeModes(int modes);
 	const std::map<const User *, privilege>&		getUsersMap() const;

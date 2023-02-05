@@ -47,7 +47,7 @@ void	Channel::setTopic(const std::string &topic)
 // 	removeBanned(user);
 // }
 
-size_t	Channel::countUsers()
+size_t	Channel::countUsers() const
 {
 	return (_users.size());
 }
@@ -101,7 +101,7 @@ const std::string	Channel::constructWho(const User &user)
 	return ret;
 }
 
-bool	Channel::checkModes(int modes) 
+bool	Channel::checkModes(int modes) const
 {
 	return modes == (_modes & modes);
 }

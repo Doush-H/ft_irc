@@ -156,7 +156,9 @@ class SendingTheMsgFailedException : public std::exception {
 	/// @param resp the response map to which the responses will be added
 	/// @param channel the channel to which the message will be sent
 	/// @param message the message that will be sent to the channel
-	void 									sendToChannel(std::map<User, std::string>* resp, Channel* channel, const std::string& message);
+	void 									sendToChannel(std::map<User, std::string>* resp, const Channel& channel, const std::string& message);
+
+	void 									sendMsgToChannel(std::map<User, std::string>* resp, const Channel& channel, Message* msg);
 
 	// checks if the user who sent the message is registered, if yes then it will add the welcome message
 	void									checkIfRegistered(Message& msg, std::map<User, std::string>* resp);
@@ -173,13 +175,18 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				topicCommand(Message& msg);
 	std::map<User, std::string>				privmsgCommand(Message& msg);
 	std::map<User, std::string>				whoCommand(Message& msg);
+	void									sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp);
 	void 									whoEveryone(std::map<User, std::string>* resp, Message* msg, const std::string& mask);
 	void 									whoChannel(std::map<User, std::string>* resp, Message* msg, const Channel& channel, int priv);
 	void 									whoOneParam(std::map<User, std::string>* resp, Message* msg);
 	void 									whoTwoParam(std::map<User, std::string>* resp, Message* msg);
 	std::map<User, std::string>				partCommand(Message& msg);
-	void						 			privmsgToUserCommand(Message& msg, std::map<User, std::string>* resp);
-	void 									privmsgToChannelCommand(Message& msg, std::map<User, std::string>* resp);
+
+	//If no errors occurred return true, else returns false
+	bool						 			privmsgToUserCommand(Message* msg, std::map<User, std::string>* resp, const std::string& userNick);
+
+	//If no errors occurred return true, else returns false
+	bool 									privmsgToChannelCommand(Message* msg, std::map<User, std::string>* resp, const std::string& chanName);
 };
 
 

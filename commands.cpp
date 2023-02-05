@@ -6,8 +6,8 @@ void Server::addResponse(std::map<User, std::string>* resp, const User& receiver
 	resp->insert(std::pair<User, std::string>(receiver, respMessage));
 }
 
-void Server::sendToChannel(std::map<User, std::string>* resp, Channel* channel, const std::string& message) {
-	std::map<const User *, privilege> users = channel->getUsersMap();
+void Server::sendToChannel(std::map<User, std::string>* resp, const Channel& channel, const std::string& message) {
+	std::map<const User *, privilege> users = channel.getUsersMap();
 	std::map<const User *, privilege>::const_iterator it = users.begin();
 
 	while (it != users.end()) {
@@ -15,6 +15,20 @@ void Server::sendToChannel(std::map<User, std::string>* resp, Channel* channel, 
 		it++;
 	}
 
+}
+
+void Server::sendMsgToChannel(std::map<User, std::string>* resp, const Channel& channel, Message* msg) {
+	std::map<const User *, privilege> users = channel.getUsersMap();
+	std::map<const User *, privilege>::const_iterator it = users.begin();
+	std::string senderPrefix = ":" + msg->getSenderUser().getNick() + "!" + msg->getSenderUser().getName();
+	std::string senderMessage = msg->getParams().back();
+
+
+	while (it != users.end()) {
+		if (it->first->getNick() != msg->getSenderUser().getNick())
+			addResponse(resp, *(it->first), senderPrefix + " PRIVMSG " + channel.getName() + " :" + senderMessage);	
+		it++;
+	}
 }
 
 bool containsMask(const char* mask, const char* str) {
@@ -51,7 +65,7 @@ std::map<int, User>::iterator Server::findUserByNick(std::string nickName) {
 	return it;
 }
 
-std::list<std::string> getUsersFromInputList(std::string str) {
+std::list<std::string> getRecieversFromInputList(std::string str) {
 	char* buf = const_cast<char*>(str.c_str());
 	char *user = strtok(buf, ",");
 
@@ -177,21 +191,57 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 			std::string key = params.back();
 			if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key) {	//if key is required, accept if key is correct
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
-				sendToChannel(&resp, &(_channels.find(chanName)->second), successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel (it's specified by the norm). In order to also inform the new user that he successfuly joined the channel call the function after adding the user to the channel
+				sendInfoToNewJoin(msg, &(chan->second), &resp);
+				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel (it's specified by the norm). In order to also inform the new user that he successfuly joined the channel call the function after adding the user to the channel
 			} else if (msg.getParams().size() == 2) {	//else reject if key is incorrect
 				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 :Cannot join channel, invalid key");
 			} else {	//if no key then join the channel directly
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
-				sendToChannel(&resp, &(_channels.find(chanName)->second), successfulJoin);
+				sendInfoToNewJoin(msg, &(chan->second), &resp);
+				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin);
 			}
 		} else {	//if channel does not exist, create one and add the user as an operator
 			Channel	newchan	= Channel(chanName, 0);
 			newchan.addUser(msg.getSenderUser(), OPERATOR);
 			_channels.insert(std::pair<std::string, Channel>(chanName, newchan));
-			sendToChannel(&resp, &(_channels.find(chanName)->second), successfulJoin);
+			sendInfoToNewJoin(msg, &(chan->second), &resp);
 		}
 	}
 	return resp;
+}
+
+void Server::sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp) {
+	// ------------------ send the join confirmation ---------------------
+	std::string senderPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1";
+	std::string respString = senderPrefix + " JOIN :" + channel->getName() + "\r\n";
+
+	// -------------------- send channel topic --------------------
+	if (!channel->getTopic().empty())
+		respString.append(SERV_PREFIX "332 " + msg.getSenderUser().getNick() + " " + channel->getName() + " :" + channel->getTopic() + "\r\n");
+
+	// -------------------- send the user list ---------------------
+	respString.append(SERV_PREFIX "353 " + msg.getSenderUser().getNick());
+	if (channel->checkModes(MODERATED))
+		respString.append(" + ");
+	else
+		respString.append(" = ");
+	
+	respString.append(channel->getName());
+	respString.append(" :");
+	const std::map<const User *, privilege>& users = channel->getUsersMap();
+	std::map<const User *, privilege>::const_iterator it = users.begin();
+	while (it != users.end()) {
+		const User* user = it->first;
+		privilege userPriv = it->second;
+		if (userPriv == OPERATOR)
+			respString.append("@");
+		respString.append(user->getNick());
+		it++; // INCREMENT THE ITERATOR
+		if (it != users.end()) // CHECK IF LAST ONE, DON'T add space if the last one
+			respString.append(" ");
+	}
+	respString.append("\r\n" SERV_PREFIX "366 " + msg.getSenderUser().getNick() + " " + channel->getName() + " :End of /NAMES list");
+	addResponse(resp, msg.getSenderUser(), respString);
 }
 
 // -------------------------------- TOPIC --------------------------------
@@ -225,7 +275,7 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 			chan->second.setTopic(msgParams.back());
 			// addResponse(&resp, msg.getSenderUser(), ":" + msg.getSenderUser().getNick() + "!" \
 			// 	+ msg.getSenderUser().getName() + "@127.0.0.1 TOPIC " + msgParams.front() + " :" + msgParams.back()); // not removing this because didn't test it yet
-			sendToChannel(&resp, &chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+			sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 				+ msg.getSenderUser().getName() + "@127.0.0.1 TOPIC " + msgParams.front() + " :" + msgParams.back()); // Topic change should also inform everyone in the channel
 		} else {	//otherwise reject change and return relevant error
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " \
@@ -339,7 +389,7 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 		} else if (chan->second.findUser(msg.getSenderUser()) == -1){
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 :You're not on that channel");
 		} else {
-			sendToChannel(&resp, &chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+			sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 				+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 			chan->second.removeUser(msg.getSenderUser());
 			// addResponse(&resp, msg.getSenderUser(),":" + msg.getSenderUser().getNick() + "!" \
@@ -356,33 +406,67 @@ std::map<User, std::string> Server::privmsgCommand(Message& msg) {
 	std::map<User, std::string> resp;
 	std::list<std::string> msgParams = msg.getParams();
 
-	if (msgParams.size() != 2) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
-	} else if (msgParams.front().at(0) == '#' || msgParams.front().at(0) == '&') {
-		privmsgToChannelCommand(msg, &resp);
-	} else {
-		privmsgToUserCommand(msg, &resp);
+
+	std::list<std::string> recievers = getRecieversFromInputList(msg.getParams().front());
+	std::list<std::string>::iterator it = recievers.begin();
+	while (it != recievers.end()) {
+		if (msgParams.size() != 2) {
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+		} else if (it->at(0) == '#' || it->at(0) == '&') {
+			if (!privmsgToChannelCommand(&msg, &resp, *it))
+				break;
+		} else {
+			if (!privmsgToUserCommand(&msg, &resp, *it))
+				break;
+		}
+		it++;
 	}
 	return resp;
 }
 
-void Server::privmsgToUserCommand(Message& msg, std::map<User, std::string>* resp) {
-	std::string senderPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName();
-	std::string senderMessage = msg.getParams().back();
-	std::list<std::string> users = getUsersFromInputList(msg.getParams().front());
-	std::list<std::string>::iterator it = users.begin();
-	while (it != users.end()) {
-		std::map<int, User>::iterator userIt = findUserByNick(*it);
-		if (userIt != _users.end()) {
-			addResponse(resp, userIt->second, senderPrefix + " PRIVMSG " + userIt->second.getNick() + " :" + senderMessage);
-		} else {
-			resp->clear();
-			addResponse(resp, msg.getSenderUser(), SERV_PREFIX "401 " + msg.getSenderUser().getNick() + " " + *it + " :No such nick/channel");
-		}
-		it++;
+bool Server::privmsgToUserCommand(Message* msg, std::map<User, std::string>* resp, const std::string& userNick) {
+	std::string senderPrefix = ":" + msg->getSenderUser().getNick() + "!" + msg->getSenderUser().getName();
+	std::string senderMessage = msg->getParams().back();
+	std::map<int, User>::iterator userIt = findUserByNick(userNick);
+	if (userIt != _users.end()) {
+		addResponse(resp, userIt->second, senderPrefix + " PRIVMSG " + userIt->second.getNick() + " :" + senderMessage);
+	} else {
+		resp->clear();
+		addResponse(resp, msg->getSenderUser(), SERV_PREFIX "401 " + msg->getSenderUser().getNick() + " " + userNick + " :No such nick/channel");
+		return false;
 	}
+	return true;
 }
 
-void Server::privmsgToChannelCommand(Message& msg, std::map<User, std::string>* resp) {
- // Didn't have time to work on this again :D
+bool Server::privmsgToChannelCommand(Message* msg, std::map<User, std::string>* resp, const std::string& chanName) {
+	std::string senderPrefix = ":" + msg->getSenderUser().getNick() + "!" + msg->getSenderUser().getName();
+	std::string senderMessage = msg->getParams().back();
+	std::string cannotSendMessage = SERV_PREFIX "404 " + chanName + " :Cannot send to channel";
+
+	std::list<std::string> msgParams = msg->getParams();
+
+	std::map<std::string, Channel>::const_iterator chanIt = _channels.find(chanName);
+
+	if (chanIt == _channels.end()) {
+		resp->clear();
+		addResponse(resp, msg->getSenderUser(), SERV_PREFIX "401 " + chanName  + " :No such nick/channel");
+		return false;
+	} else {
+		const Channel& channel = chanIt->second;
+		if (channel.findUser(msg->getSenderUser()) == -1) { // check if user is not in the channel, if that's the case send back error
+			resp->clear();
+			addResponse(resp, msg->getSenderUser(), cannotSendMessage);
+			return false;
+		} else { // if user in the channel then continue
+			if (channel.checkModes(MODERATED) && channel.findUser(msg->getSenderUser()) != VOICE_PRIO && channel.findUser(msg->getSenderUser()) != OPERATOR) {
+				resp->clear();
+				addResponse(resp, msg->getSenderUser(), cannotSendMessage);
+				return false;
+			} else {
+				sendMsgToChannel(resp, channel, msg);
+			}
+		}
+	}
+	return true;
 }
+
