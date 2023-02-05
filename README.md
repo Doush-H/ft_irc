@@ -4,7 +4,6 @@ Simple Irc server (in progress)
 
 ## To-do:
 - ### Kevin:
-  - PART
   - WHO (new)
 
 - ### Doush:
@@ -17,5 +16,6 @@ Simple Irc server (in progress)
   - MODE
 
 - ### Done:
+  - PART
   - JOIN
   - TOPIC
