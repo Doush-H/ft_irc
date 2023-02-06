@@ -201,10 +201,10 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin);
 			}
 		} else {	//if channel does not exist, create one and add the user as an operator
-			Channel	newchan	= Channel(chanName, 0);
+			Channel	newchan	= Channel(chanName, NONE);
 			newchan.addUser(msg.getSenderUser(), OPERATOR);
 			_channels.insert(std::pair<std::string, Channel>(chanName, newchan));
-			sendInfoToNewJoin(msg, &(chan->second), &resp);
+			sendInfoToNewJoin(msg, &(newchan), &resp);
 		}
 	}
 	return resp;
@@ -216,6 +216,7 @@ void Server::sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<Us
 	std::string respString = senderPrefix + " JOIN :" + channel->getName() + "\r\n";
 
 	// -------------------- send channel topic --------------------
+
 	if (!channel->getTopic().empty())
 		respString.append(SERV_PREFIX "332 " + msg.getSenderUser().getNick() + " " + channel->getName() + " :" + channel->getTopic() + "\r\n");
 
