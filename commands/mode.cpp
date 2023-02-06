@@ -2,7 +2,7 @@
 
 //flags:
 //  channel:            |   user:
-//  +i = invite only    |   (+i) = invisible user
+//  +i = invite only    |
 //  +p = private        |   +v = voice privileges
 //  +s = secret         |   +o = operator privileges
 //  +t = topic restric. |
@@ -14,8 +14,9 @@
 
 //syntax out:
 //  :42irc.com 324 <sender nick> #channel +m    -> returns that channel has been put into moderated mode
-//  this is all I will do for now (server modes only)
 //  to do: user modes
+//	user modes can only be given by a channel operator to users in the channel
+//	
 
 static std::string	constructFlags(const Channel &chan)
 {
@@ -49,6 +50,10 @@ static int	flagGlossary(char c)
 		return (INVITE_ONLY);
 	case 't':
 		return (TOPIC_RESTRICTED);
+	case 'o':
+		return (OPERATOR);
+	case 'v':
+		return (VOICE_PRIO);
 	default:
 		break;
 	}
@@ -121,7 +126,47 @@ void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 			+ " " + chanName + " " + msgParams.back();
 		User	temp = msg.getSenderUser();
 		addResponse(resp, msg.getSenderUser(), message);
-		sendToChannel(resp, chan->second, ":" + temp.getNick() + "!" + temp.getName() + "@127.0.0.1 MODE " + msgParams.front() + " " + msgParams.back());
+		sendToChannel(resp, chan->second, ":" + temp.getNick() + "!" + temp.getName() \
+			+ "@127.0.0.1 MODE " + msgParams.front() + " " + msgParams.back());
+	}
+}
+
+void	Server::modeChangeChannelUser(std::map<User, std::string> *resp, Message &msg)
+{
+	std::list<std::string> msgParams = msg.getParams();
+	std::string	chanName = msgParams.front();
+	msgParams.pop_front();
+	std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
+	std::map<int, User>::iterator	user = findUserByNick(msgParams.back());
+	int	flags = parseFlags(msgParams.front());
+	if (chan == _channels.end()) {	//check if channel exists
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
+			+ " " + chanName + " 403 :No such channel");
+	} else if (flags < 0) {	//check if flags are valid
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "472 " + msg.getSenderUser().getNick() \
+			+ " " + static_cast <char> (std::abs(flags)) + " :is unknown mode char to me");
+	} else if (user == _users.end() || chan->second.findUser(user->second) == -1) {	//no such target user exists in channel
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
+			+ " " + chanName + " 401 :No such nick/channel");
+	} else if (chan->second.findUser(msg.getSenderUser()) != 1) {	//command user not operator
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
+			+ " " + chanName + " 502 :Cant change mode for other users");
+	} else {	//successful parsing
+		int removeflags = flags >> 8;	//separate remove flags from add flags by bitshifting
+		flags = flags << 24;
+		flags = flags >> 24;
+		if (flags & 1)
+			chan->second.setPrivilege(user->second, OPERATOR);
+		else if (flags & 2)
+			chan->second.setPrivilege(user->second, VOICE_PRIO);
+		if (removeflags & 2 || removeflags & 1)
+			chan->second.setPrivilege(user->second, NO_PRIO);
+		User	temp = msg.getSenderUser();
+		std::string	message = SERV_PREFIX "324 " + temp.getNick() \
+			+ " " + chanName + " " + msgParams.front() + " " + msgParams.back();
+		addResponse(resp, msg.getSenderUser(), message);
+		sendToChannel(resp, chan->second, ":" + temp.getNick() + "!" + temp.getName() \
+			+ "@127.0.0.1 MODE " + chanName + " " + msgParams.front() + " " + msgParams.back());
 	}
 }
 
@@ -139,8 +184,7 @@ std::map<User, std::string>	Server::modeCommand(Message& msg)
 	} else if (msgParams.size() == 2) {
 		modeChangeChannel(&resp, msg);
 	} else if (msgParams.size() == 3) {
-		//change user
-		;
+		modeChangeChannelUser(&resp, msg);
 	}
 	return resp;
 }
