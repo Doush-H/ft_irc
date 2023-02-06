@@ -112,8 +112,9 @@ std::map<User, std::string> Server::quitCommand(Message& msg) {
 
 	std::string userPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName();
 	if (msg.getParams().size() > 1) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getCommand() + " :Need more params");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getCommand() + " :Too many params");
 	} else {
+		msg.getSenderUser().setDisconnect(true); // need to set it here so it effects the user in this iteration, the returned map has a copy of user not pointer
 		std::map<std::string, Channel>::iterator chanIt = _channels.begin();
 		std::string quitMessage = userPrefix + " QUIT";
 		if (msg.getParams().size() == 1)
@@ -124,9 +125,62 @@ std::map<User, std::string> Server::quitCommand(Message& msg) {
 			}
 			chanIt++;
 		}
-		msg.getSenderUser().setDisconnect(true);
 		addResponse(&resp, msg.getSenderUser(), quitMessage);
 	}
 
 	return resp;
+}
+
+// -------------------------------- LIST --------------------------------
+
+std::map<User, std::string> Server::listCommand(Message& msg) {
+	std::map<User, std::string> resp;
+	std::list<std::string> paramsList = msg.getParams();
+	if (paramsList.size() > 1)
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getCommand() + " :Too many params");
+	else if (paramsList.size() == 0) {
+		listChannels(&resp, &msg, "");
+	} else {
+		listChannels(&resp, &msg, paramsList.front());
+	}
+
+	return resp;
+}
+
+void Server::listChannels(std::map<User, std::string>* resp, Message* msg, std::string channelsStr) {
+
+	addResponse(resp, msg->getSenderUser(), SERV_PREFIX "321 " + msg->getSenderUser().getNick() + " Channel :Users Name");
+	if (!channelsStr.empty()) {
+		std::list<std::string> channelsList = getRecieversFromInputList(msg->getParams().front());
+		std::list<std::string>::const_iterator it = channelsList.begin();
+		while (it != channelsList.end()) {
+			std::map<std::string, Channel>::const_iterator chanIt = _channels.find(*it);
+			if (chanIt == _channels.end()) {
+				resp->clear();
+				addResponse(resp, msg->getSenderUser(), SERV_PREFIX "403 " + msg->getSenderUser().getNick() + " " + *it + " :No such channel");
+				return ;
+			}
+			std::string chanTopic = ":" + chanIt->second.getTopic();
+			std::stringstream ss;
+			ss << chanIt->second.countUsers();
+			std::string chanUserCount = ss.str();
+
+			std::string chanInfoMsg = SERV_PREFIX "322 " + msg->getSenderUser().getNick() + " " + *it + " " + chanUserCount + " " + chanTopic;
+			addResponse(resp, msg->getSenderUser(), chanInfoMsg);
+			it++;
+		}
+	} else {
+		std::map<std::string, Channel>::const_iterator chanIt = _channels.begin();
+		while (chanIt != _channels.end()) {
+			std::string chanTopic = ":" + chanIt->second.getTopic();
+			std::stringstream ss;
+			ss << chanIt->second.countUsers();
+			std::string chanUserCount = ss.str();
+
+			std::string chanInfoMsg = SERV_PREFIX "322 " + msg->getSenderUser().getNick() + " " + chanIt->first + " " + chanUserCount + " " + chanTopic;
+			addResponse(resp, msg->getSenderUser(), chanInfoMsg);
+			chanIt++;
+		}
+	}
+	addResponse(resp, msg->getSenderUser(), SERV_PREFIX "323 " + msg->getSenderUser().getNick() + " :End of /LIST");
 }

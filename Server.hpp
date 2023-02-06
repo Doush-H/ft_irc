@@ -17,6 +17,7 @@
 # include "Message.hpp"
 # include "Channel.hpp"
 # include <cstring>
+# include <sstream>
 
 # define MSG_LEN 4096
 # define SERV_PREFIX ":42irc.com "
@@ -159,6 +160,7 @@ class SendingTheMsgFailedException : public std::exception {
 	/// @param message the message that will be sent to the channel
 	void 									sendToChannel(std::map<User, std::string>* resp, const Channel& channel, const std::string& message);
 
+	// sends a PRIVMSG to poeple in the channel excluding the sender User
 	void 									sendMsgToChannel(std::map<User, std::string>* resp, const Channel& channel, Message* msg);
 
 	// checks if the user who sent the message is registered, if yes then it will add the welcome message
@@ -179,6 +181,10 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				modeCommand(Message& msg);
 	std::map<User, std::string>				partCommand(Message& msg);
 	std::map<User, std::string>				quitCommand(Message& msg);
+	std::map<User, std::string>				listCommand(Message& msg);
+	void 									listChannels(std::map<User, std::string>* resp, Message* msg, std::string channels);
+
+
 	void									sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp);
 	void 									whoEveryone(std::map<User, std::string>* resp, Message* msg, const std::string& mask);
 	void 									whoChannel(std::map<User, std::string>* resp, Message* msg, const Channel& channel, int priv);

@@ -1,10 +1,11 @@
 #include "Server.hpp"
 
+
+// ------------------ Getters and Setters ------------------
+
 int Server::getPort() const {
 	return _port;
 }
-
-// ------------------ Getters and Setters ------------------
 
 void Server::setPort(int port) {
 	Server::_port = port;
@@ -231,6 +232,8 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 		response = modeCommand(msg);
 	} else if (msg.getCommand() == "QUIT") {
 		response = quitCommand(msg);
+	}  else if (msg.getCommand() == "LIST") {
+		response = listCommand(msg);
 	} else {
 		response.insert(std::pair<User, std::string>(msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand()));
 	}
