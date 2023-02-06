@@ -74,7 +74,12 @@ std::string Message::parseCommand(const std::string& buf, Message& msg) {
 
 	//Find and set the command
 	int end = buf.find(' ');
-	msg.setCommand(buf.substr(0, end));
+	std::string tmp = buf.substr(0, end);
+	std::string cmd;
+	for (unsigned int i = 0; i < tmp.length(); i++) {
+		cmd += toupper(tmp[i]);
+	}
+	msg.setCommand(cmd);
 
 	// Remove the found command and the space/s after it
 	newBuf.erase(0, end);

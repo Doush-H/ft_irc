@@ -235,7 +235,7 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 	}  else if (msg.getCommand() == "LIST") {
 		response = listCommand(msg);
 	} else {
-		response.insert(std::pair<User, std::string>(msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand()));
+		addResponse(&response, msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand());
 	}
 	return response;
 }
