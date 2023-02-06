@@ -2,10 +2,12 @@ NAME := ircserv
 CPP := c++
 # CPPFLAGS := -std=c++98 -Wall -Wextra -Werror
 CPPFLAGS := -std=c++98
+IFLAGS := -I .
 
+VPATH := commands
 
-SRC := Message.cpp Server.cpp User.cpp main.cpp commands.cpp Channel.cpp
-OBJ := $(SRC:.cpp=.o)
+SRC := Message.cpp Server.cpp User.cpp main.cpp commands.cpp who.cpp channelcmd.cpp privmsg.cpp login.cpp Channel.cpp
+OBJ := $(addprefix _obj/,$(notdir $(SRC:.cpp=.o)))
 
 DEPS := Message.hpp Server.hpp User.hpp Channel.hpp
 
@@ -17,11 +19,14 @@ $(NAME): $(OBJ) $(DEPS)
 	@printf "\033[32;3mProgram name: $(NAME)\033[0m\n"
 	@printf "\033[32;3mRun: ./$(NAME) <port> <password>\033[0m\n"
 
-%.o: %.cpp $(DEPS)
-	@$(CPP) $(CPPFLAGS) -c $< -o $@
+_obj:
+	mkdir _obj
+
+_obj/%.o: %.cpp $(DEPS) | _obj
+	@$(CPP) $(CPPFLAGS) $(IFLAGS) -c $< -o $@
 
 clean:
-	@rm -rf $(OBJ)
+	@rm -rf _obj
 	@clear
 	@printf "\033[31mObject files cleaned\033[0m\n"
 
