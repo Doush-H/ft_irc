@@ -8,9 +8,9 @@ private:
 	std::string 	_nick;
 	std::string 	_name;
 	std::string 	_fullName;
+	int 			_userFd;
 	bool 			_isRegistered;
 	bool 			_allowConnection;
-	int 			_userFd;
 	bool			_disconnect;
 
 public:

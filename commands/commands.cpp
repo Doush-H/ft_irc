@@ -3,7 +3,12 @@
 // ------------------------------- Helper Functions ----------------------------------
 
 void Server::addResponse(std::map<User, std::string>* resp, const User& receiver, const std::string& respMessage) {
-	resp->insert(std::pair<User, std::string>(receiver, respMessage));
+	
+	std::pair<std::map<User, std::string>::iterator, bool> insertResult = resp->insert(std::pair<User, std::string>(receiver, respMessage));
+	if (insertResult.second == false) {
+		std::map<User, std::string>::iterator it = insertResult.first;
+		it->second.append("\r\n" + respMessage);
+	}
 }
 
 void Server::sendToChannel(std::map<User, std::string>* resp, const Channel& channel, const std::string& message) {
@@ -101,3 +106,25 @@ std::map<User, std::string> Server::capCommand(Message& msg){
 }
 
 // -------------------------------- QUIT --------------------------------
+
+std::map<User, std::string> Server::quitCommand(Message& msg) {
+	std::map<User, std::string> resp;
+
+	std::string userPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName();
+	if (msg.getParams().size() > 1) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getCommand() + " :Need more params");
+	} else {
+		std::map<std::string, Channel>::iterator chanIt = _channels.begin();
+		std::string quitMessage = userPrefix + " QUIT";
+		if (msg.getParams().size() == 2)
+			quitMessage += " :" + msg.getParams().back();
+		while (chanIt != _channels.end()) {
+			if (chanIt->second.findUser(msg.getSenderUser()) != -1) {
+				sendToChannel(&resp, chanIt->second, quitMessage);
+			}
+			chanIt++;
+		}
+	}
+
+	return resp;
+}

@@ -18,15 +18,15 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 		if (chan != _channels.end()) {	//case channel is found, join it as a regular user (no priority)
 			std::string key = params.back();
 			if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key) {	//if key is required, accept if key is correct
+				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 				sendInfoToNewJoin(msg, &(chan->second), &resp);
-				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel (it's specified by the norm). In order to also inform the new user that he successfuly joined the channel call the function after adding the user to the channel
 			} else if (msg.getParams().size() == 2) {	//else reject if key is incorrect
 				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 :Cannot join channel, invalid key");
 			} else {	//if no key then join the channel directly
+				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin);
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 				sendInfoToNewJoin(msg, &(chan->second), &resp);
-				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin);
 			}
 		} else {	//if channel does not exist, create one and add the user as an operator
 			Channel	newchan	= Channel(chanName, NONE);
@@ -39,7 +39,7 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 }
 
 void Server::sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp) {
-	// ------------------ send the join confirmation ---------------------
+	// // ------------------ send the join confirmation ---------------------
 	std::string senderPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1";
 	std::string respString = senderPrefix + " JOIN :" + channel->getName() + "\r\n";
 
