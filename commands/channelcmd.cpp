@@ -1,5 +1,7 @@
 #include "Server.hpp"
 
+std::list<std::string> getRecieversFromInputList(std::string str);
+
 // -------------------------------- JOIN --------------------------------
 
 std::map<User, std::string> Server::joinCommand(Message& msg){
@@ -85,20 +87,46 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 	} else if (!msg.getSenderUser().isRegistered()) {
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
 	} else {
-		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
-		if (chan == _channels.end()){
-			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
-				+ " " + msgParams.front() + " 403 :No such channel");
-		} else if (chan->second.findUser(msg.getSenderUser()) == -1){
-			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 :You're not on that channel");
-		} else if (msgParams.size() == 1) {
-			sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-				+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
-			chan->second.removeUser(msg.getSenderUser());
+		std::list<std::string>	inputlist = getRecieversFromInputList(msgParams.front());
+		if (inputlist.size() > 1) {
+			std::list<std::string>::iterator	it = inputlist.begin();
+			for (; it != inputlist.end(); it++)
+			{
+				std::map<std::string, Channel>::iterator	chan = _channels.find(*it);
+
+				if (chan == _channels.end()){
+					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
+						+ " " + *it + " 403 :No such channel\r\n");
+				} else if (chan->second.findUser(msg.getSenderUser()) == -1){
+					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 :You're not on that channel\r\n");
+				} else if (msgParams.size() == 1) {
+					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+						+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+					chan->second.removeUser(msg.getSenderUser());
+				} else {
+					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+						+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+					chan->second.removeUser(msg.getSenderUser());
+				}
+			}
+			// in this case leave from all of the channels listed, delimited by a comma
 		} else {
-			sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-				+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front() + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
-			chan->second.removeUser(msg.getSenderUser());
+			std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
+
+			if (chan == _channels.end()){
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
+					+ " " + msgParams.front() + " 403 :No such channel");
+			} else if (chan->second.findUser(msg.getSenderUser()) == -1){
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 :You're not on that channel");
+			} else if (msgParams.size() == 1) {
+				sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+					+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+				chan->second.removeUser(msg.getSenderUser());
+			} else {
+				sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+					+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front() + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+				chan->second.removeUser(msg.getSenderUser());
+			}
 		}
 	}
 	return resp;

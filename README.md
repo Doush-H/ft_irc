@@ -3,8 +3,7 @@ Simple Irc server (in progress)
 
 
 ## To-do:
-- ### Kevin:
-  - MODE
+- ### kewin: join or part multiple
   - JOIN (finish)
   - PART (needs to send a message to other users when someone leaves, use sendToChannel)
 
@@ -19,6 +18,7 @@ Simple Irc server (in progress)
   - Remove users from channel map efter disconnecting --can probably add this into QUIT
 
 - ### Done:
+  - MODE
   - PRIVMSG
   - WHO (new)
   - PART
