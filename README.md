@@ -12,7 +12,7 @@ Simple Irc server (in progress)
      
 - ### On hold:
   - LIST
-  - Remove users from channel map efter disconnecting
+  - Remove users from channel map efter disconnecting --can probably add this into QUIT
 
 - ### Done:
   - PRIVMSG
@@ -25,3 +25,7 @@ Simple Irc server (in progress)
 ## Notes:
 - Maybe we should consider putting some of the bigger commands in seperate files because they are getting long
 - Sorry if I broke something, did't have time to thoroughly test stuff
+## MODE, JOIN:
+- Still need to do mode changes for users
+- Need to enforce -i (invite only) flag for JOIN, probably more flags also have to be enforced still
+- I think I might have to send the message that MODE has been changed to all members like Doush did for JOIN, WHO

@@ -182,6 +182,8 @@ class SendingTheMsgFailedException : public std::exception {
 	void 									whoChannel(std::map<User, std::string>* resp, Message* msg, const Channel& channel, int priv);
 	void 									whoOneParam(std::map<User, std::string>* resp, Message* msg);
 	void 									whoTwoParam(std::map<User, std::string>* resp, Message* msg);
+	void									modeReturnFlags(std::map<User, std::string> *resp, Message &msg);
+	void									modeChangeChannel(std::map<User, std::string> *resp, Message &msg);
 
 	//If no errors occurred return true, else returns false
 	bool						 			privmsgToUserCommand(Message* msg, std::map<User, std::string>* resp, const std::string& userNick);
