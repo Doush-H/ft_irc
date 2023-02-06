@@ -116,7 +116,7 @@ std::map<User, std::string> Server::quitCommand(Message& msg) {
 	} else {
 		std::map<std::string, Channel>::iterator chanIt = _channels.begin();
 		std::string quitMessage = userPrefix + " QUIT";
-		if (msg.getParams().size() == 2)
+		if (msg.getParams().size() == 1)
 			quitMessage += " :" + msg.getParams().back();
 		while (chanIt != _channels.end()) {
 			if (chanIt->second.findUser(msg.getSenderUser()) != -1) {
@@ -124,6 +124,8 @@ std::map<User, std::string> Server::quitCommand(Message& msg) {
 			}
 			chanIt++;
 		}
+		msg.getSenderUser().setDisconnect(true);
+		addResponse(&resp, msg.getSenderUser(), quitMessage);
 	}
 
 	return resp;

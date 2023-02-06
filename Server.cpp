@@ -137,7 +137,14 @@ void Server::addToPoll(int fd) {
 	_activePoll++;
 }
 
-void Server::removeFromPoll(int i) {
+void Server::removeFromPoll(int userFd) {
+	int i = -1;
+	for (unsigned int j = 0; j < _activePoll; j++) {
+		if (_userPoll[j].fd == userFd)
+			i = j;
+	}
+	if (i == -1)
+		throw IndexOutOfBoundException();
 	_userPoll[i].fd = _userPoll[_activePoll - 1].fd;
 	_userPoll[i].events = POLLIN;
 	_userPoll[_activePoll - 1].fd = -1;
@@ -169,7 +176,7 @@ void Server::executeCommand(int i) {
 	if (recvBytes == 0) {
 		// !!!!!!! Probably need to close the disconnected users fd too, not sure tho :D !!!!!!!!
 		std::cout << "Client disconnected" << std::endl;
-		removeUser(i);
+		removeUser(_userPoll[i].fd);
 	} else {
 		// Get the user that we're reading from
 		User* user = &_users.find(userFd)->second;
@@ -222,6 +229,8 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 		response = partCommand(msg);
 	} else if (msg.getCommand() == "MODE") {
 		response = modeCommand(msg);
+	} else if (msg.getCommand() == "QUIT") {
+		response = quitCommand(msg);
 	} else {
 		response.insert(std::pair<User, std::string>(msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand()));
 	}
@@ -237,26 +246,34 @@ void Server::sendResponse(std::map<User, std::string>* responses) {
 		if (sendBytes == -1)
 			throw SendingTheMsgFailedException();
 		std::cout << "|" << it->second << "| was successfully sent to " + it->first.getNick() + "\n" << std::endl;
+		if (it->first.isDisconnect()) {
+			removeUser(it->first.getUserFd());
+			std::cout << it->first.getNick() << " QUIT THE SERVER" << std::endl;
+		}
 		it++;
 	}
 }
 
-void Server::removeUser(int i) {
-	if (i <= 0 || i >= SOMAXCONN)
-		throw IndexOutOfBoundException();
-	removeUserFromChannels(_users.find(_userPoll[i].fd)->second);
-	_users.erase(_userPoll[i].fd);
-	close(_userPoll[i].fd);
-	removeFromPoll(i);
+void Server::removeUser(int fd) {
+	// if (i <= 0 || i >= SOMAXCONN)
+	// 	throw IndexOutOfBoundException();
+	removeUserFromChannels(_users.find(fd)->second);
+	_users.erase(fd);
+	close(fd);
+	try {
+		removeFromPoll(fd);
+	} catch (const std::exception& e) {
+		std::cout << e.what() << std::endl;
+		exit(1);
+	}
 }
 
 void Server::removeUserFromChannels(const User& user) {
 	std::map<std::string, Channel>::iterator it = _channels.begin();
 	while (it != _channels.end()) {
 		std::map<const User*, privilege>::const_iterator userIt = it->second.getUsersMap().find(&user);
-		if (userIt != it->second.getUsersMap().end()) {
+		if (userIt != it->second.getUsersMap().end())
 			it->second.removeUser(user);
-		}
 		it++;
 	}
 }

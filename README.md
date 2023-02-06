@@ -8,7 +8,6 @@ Simple Irc server (in progress)
   - PART (needs to send a message to other users when someone leaves, use sendToChannel)
 
 - ### Doush:
-  - QUIT
   - USERS
      
 - ### On hold:
@@ -18,6 +17,7 @@ Simple Irc server (in progress)
   - Remove users from channel map efter disconnecting --can probably add this into QUIT
 
 - ### Done:
+  - QUIT
   - MODE
   - PRIVMSG
   - WHO (new)

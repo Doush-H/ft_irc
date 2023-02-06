@@ -127,7 +127,7 @@ class SendingTheMsgFailedException : public std::exception {
 	void 								executeCommand(int i);
 
 	// Removes a user from user map and poll array (should probably close the fds too)
-	void 								removeUser(int i);
+	void 								removeUser(int fd);
 	void 								removeUserFromChannels(const User& user);
 
 	// -------------------- Poll handling --------------------
