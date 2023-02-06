@@ -117,8 +117,11 @@ void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 		flags = flags >> 24;
 		chan->second.setModes(flags);
 		chan->second.removeModes(removeflags);
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
-			+ " " + chanName + " " + msgParams.back());
+		std::string	message = SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
+			+ " " + chanName + " " + msgParams.back();
+		User	temp = msg.getSenderUser();
+		addResponse(resp, msg.getSenderUser(), message);
+		sendToChannel(resp, chan->second, ":" + temp.getNick() + "!" + temp.getName() + "@127.0.0.1 MODE " + msgParams.front() + " " + msgParams.back());
 	}
 }
 
