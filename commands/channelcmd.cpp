@@ -80,7 +80,7 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 	std::map<User, std::string> resp;
 	std::list<std::string> msgParams = msg.getParams();
 
-	if (msg.getParams().size() != 1) {
+	if (msgParams.size() < 1 || msgParams.size() > 2) {
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
@@ -91,12 +91,14 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 				+ " " + msgParams.front() + " 403 :No such channel");
 		} else if (chan->second.findUser(msg.getSenderUser()) == -1){
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 :You're not on that channel");
-		} else {
+		} else if (msgParams.size() == 1) {
 			sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 				+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 			chan->second.removeUser(msg.getSenderUser());
-			// addResponse(&resp, msg.getSenderUser(),":" + msg.getSenderUser().getNick() + "!" \
-			// 	+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); LEAVING THIS BEACUSE DIDN'T TEST THE CHANGE YET
+		} else {
+			sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+				+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front() + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+			chan->second.removeUser(msg.getSenderUser());
 		}
 	}
 	return resp;

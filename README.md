@@ -5,6 +5,8 @@ Simple Irc server (in progress)
 ## To-do:
 - ### Kevin:
   - MODE
+  - JOIN (finish)
+  - PART (needs to send a message to other users when someone leaves, use sendToChannel)
 
 - ### Doush:
   - QUIT
@@ -12,6 +14,8 @@ Simple Irc server (in progress)
      
 - ### On hold:
   - LIST
+  - INVITE
+  - KICK
   - Remove users from channel map efter disconnecting --can probably add this into QUIT
 
 - ### Done:
