@@ -1,7 +1,7 @@
 #include "Channel.hpp"
 #include "User.hpp"
 
-Channel::Channel(std::string name, int modes) : _name(name), _modes(modes), _topic("No topic is set")
+Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes)
 {
 	// _secret = false;
 	// _prv = false;

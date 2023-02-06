@@ -11,6 +11,7 @@ private:
 	bool 			_isRegistered;
 	bool 			_allowConnection;
 	int 			_userFd;
+	bool			_disconnect;
 
 public:
 	User(int fd);
@@ -31,6 +32,8 @@ public:
 	void setAllowConnection(bool allowConnection);
 	int getUserFd() const;
 	void setUserFd(int userFd);
+	bool isDisconnect() const;
+	void setDisconnect(bool disconnect);
 
 	// ----------------- Methods ---------------------
 	
@@ -38,7 +41,7 @@ public:
 	std::string getCommand();
 
 	// Extends the users buffer
-	void extendBuffer(char buff[], size_t size);
+	void extendBuffer(char* buff, size_t size);
 
 	// Operator overloads
 	bool operator<(const User& other) const;

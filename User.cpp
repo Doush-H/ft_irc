@@ -3,6 +3,7 @@
 User::User(int fd) {
 	_allowConnection = false;
 	_isRegistered = false;
+	_disconnect = false;
 	_userFd = fd;
 }
 
@@ -12,6 +13,7 @@ User::User(const User& other) {
 	_userFd = other.getUserFd();
 	_nick = other.getNick();
 	_name = other.getName();
+	_disconnect = other.isDisconnect();
 	_fullName = other.getFullName();
 }
 
@@ -21,6 +23,14 @@ bool User::operator<(const User& other) const{
 }
 
 //------------------ Getters and Setters --------------------
+
+bool User::isDisconnect() const {
+	return _disconnect;
+}
+
+void User::setDisconnect(bool disconnect) {
+	_disconnect = disconnect;
+}
 
 const std::string& User::getBuf() const {
 	return _buf;

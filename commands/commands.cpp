@@ -99,3 +99,5 @@ std::map<User, std::string> Server::capCommand(Message& msg){
 		addResponse(&resp, msg.getSenderUser(), "CAP * LS :End of CAP LS negotiation");
 	return resp;
 }
+
+// -------------------------------- QUIT --------------------------------

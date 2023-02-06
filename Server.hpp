@@ -128,6 +128,7 @@ class SendingTheMsgFailedException : public std::exception {
 
 	// Removes a user from user map and poll array (should probably close the fds too)
 	void 								removeUser(int i);
+	void 								removeUserFromChannels(const User& user);
 
 	// -------------------- Poll handling --------------------
 
@@ -177,6 +178,7 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				whoCommand(Message& msg);
 	std::map<User, std::string>				modeCommand(Message& msg);
 	std::map<User, std::string>				partCommand(Message& msg);
+	std::map<User, std::string>				quitCommand(Message& msg);
 	void									sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp);
 	void 									whoEveryone(std::map<User, std::string>* resp, Message* msg, const std::string& mask);
 	void 									whoChannel(std::map<User, std::string>* resp, Message* msg, const Channel& channel, int priv);

@@ -244,6 +244,19 @@ void Server::sendResponse(std::map<User, std::string>* responses) {
 void Server::removeUser(int i) {
 	if (i <= 0 || i >= SOMAXCONN)
 		throw IndexOutOfBoundException();
+	removeUserFromChannels(_users.find(_userPoll[i].fd)->second);
 	_users.erase(_userPoll[i].fd);
+	close(_userPoll[i].fd);
 	removeFromPoll(i);
+}
+
+void Server::removeUserFromChannels(const User& user) {
+	std::map<std::string, Channel>::iterator it = _channels.begin();
+	while (it != _channels.end()) {
+		std::map<const User*, privilege>::const_iterator userIt = it->second.getUsersMap().find(&user);
+		if (userIt != it->second.getUsersMap().end()) {
+			it->second.removeUser(user);
+		}
+		it++;
+	}
 }
