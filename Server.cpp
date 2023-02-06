@@ -220,6 +220,8 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 		response = whoCommand(msg);
 	} else if (msg.getCommand() == "PART") {
 		response = partCommand(msg);
+	} else if (msg.getCommand() == "MODE") {
+		response = modeCommand(msg);
 	} else {
 		response.insert(std::pair<User, std::string>(msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand()));
 	}

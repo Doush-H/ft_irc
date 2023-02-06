@@ -4,6 +4,7 @@ Simple Irc server (in progress)
 
 ## To-do:
 - ### Kevin:
+  - MODE
 
 - ### Doush:
   - QUIT
@@ -11,7 +12,6 @@ Simple Irc server (in progress)
      
 - ### On hold:
   - LIST
-  - MODE
   - Remove users from channel map efter disconnecting
 
 - ### Done:

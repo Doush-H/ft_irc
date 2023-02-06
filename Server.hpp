@@ -175,12 +175,13 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				topicCommand(Message& msg);
 	std::map<User, std::string>				privmsgCommand(Message& msg);
 	std::map<User, std::string>				whoCommand(Message& msg);
+	std::map<User, std::string>				modeCommand(Message& msg);
+	std::map<User, std::string>				partCommand(Message& msg);
 	void									sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp);
 	void 									whoEveryone(std::map<User, std::string>* resp, Message* msg, const std::string& mask);
 	void 									whoChannel(std::map<User, std::string>* resp, Message* msg, const Channel& channel, int priv);
 	void 									whoOneParam(std::map<User, std::string>* resp, Message* msg);
 	void 									whoTwoParam(std::map<User, std::string>* resp, Message* msg);
-	std::map<User, std::string>				partCommand(Message& msg);
 
 	//If no errors occurred return true, else returns false
 	bool						 			privmsgToUserCommand(Message* msg, std::map<User, std::string>* resp, const std::string& userNick);
