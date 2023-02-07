@@ -10,9 +10,9 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 
 
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {	//command valid for 1 to 2 params
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before joining any channels");
 	} else {
 		std::string chanName = params.front();
 		std::string successfulJoin = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + chanName;
@@ -24,7 +24,7 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 				sendInfoToNewJoin(msg, &(chan->second), &resp);
 			} else if (msg.getParams().size() == 2) {	//else reject if key is incorrect
-				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 :Cannot join channel, invalid key");
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
 			} else {	//if no key then join the channel directly
 				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin);
 				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
@@ -83,9 +83,9 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 	std::list<std::string> msgParams = msg.getParams();
 
 	if (msgParams.size() < 1 || msgParams.size() > 2) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before joining any channels");
 	} else {
 		std::list<std::string>	inputlist = getRecieversFromInputList(msgParams.front());
 		if (inputlist.size() > 1) {
@@ -95,10 +95,9 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 				std::map<std::string, Channel>::iterator	chan = _channels.find(*it);
 
 				if (chan == _channels.end()){
-					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
-						+ " " + *it + " 403 :No such channel\r\n");
+					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() + " " + *it + " :No such channel");
 				} else if (chan->second.findUser(msg.getSenderUser()) == -1){
-					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 :You're not on that channel\r\n");
+					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + *it + " :You're not on that channel");
 				} else if (msgParams.size() == 1) {
 					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 						+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
@@ -114,10 +113,9 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 			std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
 
 			if (chan == _channels.end()){
-				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
-					+ " " + msgParams.front() + " 403 :No such channel");
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :No such channel");
 			} else if (chan->second.findUser(msg.getSenderUser()) == -1){
-				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 :You're not on that channel");
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :You're not on that channel");
 			} else if (msgParams.size() == 1) {
 				sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 					+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
@@ -140,9 +138,9 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 	std::list<std::string> msgParams = msg.getParams();
 
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {	//command valid for 1 to 2 params
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before using this command");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before using this command");
 	} else if (msg.getParams().size() == 1){	//case check topic
 		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
 		if (_channels.find(msgParams.front()) != _channels.end()) {	//case channel found, print topic

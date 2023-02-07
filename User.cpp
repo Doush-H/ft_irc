@@ -5,6 +5,9 @@ User::User(int fd) {
 	_isRegistered = false;
 	_disconnect = false;
 	_userFd = fd;
+	_nick = "*";
+	_name = "*";
+	_fullName = "*";
 }
 
 User::User(const User& other) {

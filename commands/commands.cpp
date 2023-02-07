@@ -89,7 +89,7 @@ std::list<std::string> getRecieversFromInputList(std::string str) {
 std::map<User, std::string> Server::pingCommand(Message& msg){
 	std::map<User, std::string> resp;
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Wrong number of parameters");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Wrong number of parameters");
 	} else {
 		std::list<std::string> params = msg.getParams();
 		addResponse(&resp, msg.getSenderUser(), "PONG :" + params.front());
@@ -113,7 +113,7 @@ std::map<User, std::string> Server::quitCommand(Message& msg) {
 
 	std::string userPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName();
 	if (msg.getParams().size() > 1) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getCommand() + " :Too many params");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Too many params");
 	} else {
 		msg.getSenderUser().setDisconnect(true); // need to set it here so it effects the user in this iteration, the returned map has a copy of user not pointer
 		std::map<std::string, Channel>::iterator chanIt = _channels.begin();
@@ -138,7 +138,7 @@ std::map<User, std::string> Server::listCommand(Message& msg) {
 	std::map<User, std::string> resp;
 	std::list<std::string> paramsList = msg.getParams();
 	if (paramsList.size() > 1)
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getCommand() + " :Too many params");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Too many params");
 	else if (paramsList.size() == 0) {
 		listChannels(&resp, &msg, "");
 	} else {
@@ -185,3 +185,66 @@ void Server::listChannels(std::map<User, std::string>* resp, Message* msg, std::
 	}
 	addResponse(resp, msg->getSenderUser(), SERV_PREFIX "323 " + msg->getSenderUser().getNick() + " :End of /LIST");
 }
+
+
+// -------------------------------- INVITE --------------------------------
+
+std::map<User, std::string> Server::inviteCommand(Message& msg) {
+	std::map<User, std::string> resp;
+
+	std::string senderPrefix = ":" +  msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + " ";
+	std::string chanName = msg.getParams().back();
+	std::string userNick = msg.getParams().front();
+
+	// Checking the param size
+	if (msg.getParams().size() != 2) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Wrong number of params");
+		return resp;
+	}
+
+	std::map<int, User>::iterator userIt = findUserByNick(userNick);
+
+	// Checking if the user exists
+	if (userIt == _users.end()) { 
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "401 " + msg.getSenderUser().getNick() + " " + userNick + " :No such nick");
+		return resp;
+	}
+
+
+	std::map<std::string, Channel>::iterator chanIt = _channels.find(chanName);
+	// Checking if the channel exists, if not then just invite the user and notify the sender that the user was invited
+	if (chanIt == _channels.end()) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "341 " + msg.getSenderUser().getNick() + " " + chanName);
+		addResponse(&resp, findUserByNick(userNick)->second, senderPrefix + "INVITE " + userNick + " " + chanName);
+		return resp;
+	}
+
+	Channel* channel = &chanIt->second;
+	int senderPriv = channel->findUser(msg.getSenderUser());
+	//Check if sender is in the channel
+	if (senderPriv == -1) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + chanName + " :You're not on that channel");
+		return resp;
+	}
+
+	// Check if channel is invite only and sender user is not an operator he can't invite people
+	if (channel->checkModes(INVITE_ONLY) && senderPriv != OPERATOR) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " + chanName + " :You're not a channel operator");
+		return resp;
+	}
+
+	// Check if the invited user is already in the channel
+	int invitedUserPriv = channel->findUser(userIt->second);
+	if (invitedUserPriv != -1) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " + userNick + " " + chanName + " :User already in the channel");
+		return resp;
+	}
+
+	// Everything's fine invite the user
+	sendToChannel(&resp, *channel, SERV_PREFIX "341 " + msg.getSenderUser().getNick() + " " + userNick + " " + chanName);
+	addResponse(&resp, findUserByNick(userNick)->second, senderPrefix + "INVITE " + userNick + " " + chanName);
+	channel->setPrivilege(findUserByNick(userNick)->second, INVITED);
+
+	return resp;
+}
+

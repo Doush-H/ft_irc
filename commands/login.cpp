@@ -5,9 +5,9 @@
 std::map<User, std::string> Server::passCommand(Message& msg){
 	std::map<User, std::string> resp;
 	if (msg.getParams().size() != 1) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Wrong number of parameters");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Wrong arguments for the command");
 	} else if (msg.getSenderUser().isRegistered()) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :You're already registered");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :You're already registered");
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputPass = params.front();
@@ -26,9 +26,9 @@ std::map<User, std::string> Server::passCommand(Message& msg){
 std::map<User, std::string> Server::nickCommand(Message& msg){
 	std::map<User, std::string> resp;
 	if (msg.getParams().size() != 1) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "431 :No nick name was given");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Wrong arguments for the command");
 	} else if (!msg.getSenderUser().isAllowConnection()) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please provide the server password with PASS command before registration");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please provide the server password with PASS command before registration");
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputNick = params.front();
@@ -39,7 +39,7 @@ std::map<User, std::string> Server::nickCommand(Message& msg){
 		while (it != eit) {
 			if (it->second.getNick() == inputNick) {
 				setName = false;
-				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "433 " + inputNick + " :Nickname is already in use");
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "433 " + msg.getSenderUser().getNick() + " " + inputNick + " :Nickname is already in use");
 			}
 			it++;
 		}
@@ -55,11 +55,11 @@ std::map<User, std::string> Server::nickCommand(Message& msg){
 std::map<User, std::string> Server::userCommand(Message& msg){
 	std::map<User, std::string> resp;
 	if (msg.getParams().size() != 4) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Wrong arguments for the command");
 	} else if (!msg.getSenderUser().isAllowConnection()) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please provide the server password with PASS command before registration");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please provide the server password with PASS command before registration");
 	} else if (msg.getSenderUser().isRegistered()) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :You can not change your user details after registration");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :You can not change your user details after registration");
 	} else {
 		std::list<std::string> params = msg.getParams();
 		std::string inputName = params.front();

@@ -10,9 +10,9 @@ std::map<User, std::string>	Server::whoCommand(Message& msg)
 	std::list<std::string> msgParams = msg.getParams();
 
 	if (msg.getParams().size() > 2) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please register");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please register");
 	} else if (msg.getParams().size() == 0){
 		whoEveryone(&resp, &msg, "");
 	} else if (msg.getParams().size() == 1){
@@ -55,7 +55,7 @@ void Server::whoChannel(std::map<User, std::string>* resp, Message* msg, const C
 void Server::whoOneParam(std::map<User, std::string>* resp, Message* msg) {
 	std::string maskParam = msg->getParams().front();
 
-	if (maskParam.at(0) == '#' || maskParam.at(0) == '&') {
+	if (maskParam.at(0) == '#' || maskParam.at(0) == '&') { // If channel who execute whoChannel
 		std::map<std::string, Channel>::const_iterator it = _channels.find(maskParam);
 		if (it == _channels.end()) { // if the channel was not found return error
 			addResponse(resp, msg->getSenderUser(), SERV_PREFIX "403 " + msg->getSenderUser().getNick() \
@@ -63,7 +63,7 @@ void Server::whoOneParam(std::map<User, std::string>* resp, Message* msg) {
 		} else { // else send the list of people in the channel with all privileges
 			whoChannel(resp, msg, it->second, -1);
 		}
-	} else {
+	} else { // if not channel who execute whoEveryone
 		whoEveryone(resp, msg, maskParam);
 	}
 }
@@ -73,7 +73,7 @@ void Server::whoTwoParam(std::map<User, std::string>* resp, Message* msg) {
 	std::string secondParam = msg->getParams().back();
 
 	if (secondParam != "o") {
-		addResponse(resp, msg->getSenderUser(), SERV_PREFIX "461 " + msg->getCommand() + " :Not all parameters were provided");
+		addResponse(resp, msg->getSenderUser(), SERV_PREFIX "461 " + msg->getSenderUser().getNick() + " " + msg->getCommand() + " :Wrong parameters for the command");
 	} else if (maskParam.at(0) == '#' || maskParam.at(0) == '&') {
 		std::map<std::string, Channel>::const_iterator it = _channels.find(maskParam);
 		if (it == _channels.end()) { // if the channel was not found return error

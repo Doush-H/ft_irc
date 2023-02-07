@@ -232,8 +232,10 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 		response = modeCommand(msg);
 	} else if (msg.getCommand() == "QUIT") {
 		response = quitCommand(msg);
-	}  else if (msg.getCommand() == "LIST") {
+	} else if (msg.getCommand() == "LIST") {
 		response = listCommand(msg);
+	} else if (msg.getCommand() == "INVITE") {
+		response = inviteCommand(msg);
 	} else {
 		addResponse(&response, msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand());
 	}

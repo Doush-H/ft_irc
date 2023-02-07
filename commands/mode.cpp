@@ -93,8 +93,8 @@ void	Server::modeReturnFlags(std::map<User, std::string> *resp, Message &msg)
 	//in this case I will return the current modes on the channel
 	std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
 	if (chan == _channels.end()) {	//check if channel exists
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
-			+ " " + msgParams.front() + " 403 :No such channel");
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
+			+ " " + msgParams.front() + " :No such channel");
 	} else {
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
 			+ " " + msgParams.front() + " " + constructFlags(chan->second));
@@ -108,8 +108,8 @@ void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 	std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
 	int	flags = parseFlags(msgParams.back());
 	if (chan == _channels.end()) {	//check if channel exists
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
-			+ " " + msgParams.front() + " 403 :No such channel");
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
+			+ " " + msgParams.front() + " :No such channel");
 	} else if (!msgParams.back().compare("b")) {	//to get rid of the annoying banmask request I just send back end of ban list
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "368 " + msg.getSenderUser().getNick() \
 			+ " " + chanName + " :End of Channel Ban List");
@@ -140,17 +140,17 @@ void	Server::modeChangeChannelUser(std::map<User, std::string> *resp, Message &m
 	std::map<int, User>::iterator	user = findUserByNick(msgParams.back());
 	int	flags = parseFlags(msgParams.front());
 	if (chan == _channels.end()) {	//check if channel exists
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
-			+ " " + chanName + " 403 :No such channel");
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
+			+ " " + chanName + ":No such channel");
 	} else if (flags < 0) {	//check if flags are valid
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "472 " + msg.getSenderUser().getNick() \
 			+ " " + static_cast <char> (std::abs(flags)) + " :is unknown mode char to me");
 	} else if (user == _users.end() || chan->second.findUser(user->second) == -1) {	//no such target user exists in channel
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
-			+ " " + chanName + " 401 :No such nick/channel");
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "401 " + msg.getSenderUser().getNick() \
+			+ " " + chanName + " :No such nick/channel");
 	} else if (chan->second.findUser(msg.getSenderUser()) != 1) {	//command user not operator
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX + msg.getSenderUser().getNick() \
-			+ " " + chanName + " 502 :Cant change mode for other users");
+		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "502 " + msg.getSenderUser().getNick() \
+			+ " " + chanName + " :Cant change mode for other users");
 	} else {	//successful parsing
 		int removeflags = flags >> 8;	//separate remove flags from add flags by bitshifting
 		flags = flags << 24;
@@ -176,9 +176,9 @@ std::map<User, std::string>	Server::modeCommand(Message& msg)
 	std::list<std::string> msgParams = msg.getParams();
 
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 3) {	//command valid for 2 to 3 params
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 :Please log in before joining any channels");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before joining any channels");
 	} else if (msgParams.size() == 1) {
 		modeReturnFlags(&resp, msg);
 	} else if (msgParams.size() == 2) {

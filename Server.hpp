@@ -182,6 +182,7 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				partCommand(Message& msg);
 	std::map<User, std::string>				quitCommand(Message& msg);
 	std::map<User, std::string>				listCommand(Message& msg);
+	std::map<User, std::string>				inviteCommand(Message& msg);
 
 	// A helper funnction to be used by other functions (including listCommand()), pass the channels param as an empty string in order to list all channels
 	void 									listChannels(std::map<User, std::string>* resp, Message* msg, std::string channels);

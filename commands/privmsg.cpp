@@ -12,7 +12,7 @@ std::map<User, std::string> Server::privmsgCommand(Message& msg) {
 	std::list<std::string>::iterator it = recievers.begin();
 	while (it != recievers.end()) {
 		if (msgParams.size() != 2) {
-			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 :Not all parameters were provided");
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " :Not all parameters were provided");
 		} else if (it->at(0) == '#' || it->at(0) == '&') {
 			if (!privmsgToChannelCommand(&msg, &resp, *it))
 				break;
@@ -50,7 +50,7 @@ bool Server::privmsgToChannelCommand(Message* msg, std::map<User, std::string>* 
 
 	if (chanIt == _channels.end()) {
 		resp->clear();
-		addResponse(resp, msg->getSenderUser(), SERV_PREFIX "401 " + chanName  + " :No such nick/channel");
+		addResponse(resp, msg->getSenderUser(), SERV_PREFIX "401 " + msg->getSenderUser().getNick() + " " + chanName + " :No such nick/channel");
 		return false;
 	} else {
 		const Channel& channel = chanIt->second;
