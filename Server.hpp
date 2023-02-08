@@ -194,6 +194,8 @@ class SendingTheMsgFailedException : public std::exception {
 	void									modeReturnFlags(std::map<User, std::string> *resp, Message &msg);
 	void									modeChangeChannel(std::map<User, std::string> *resp, Message &msg);
 	void									modeChangeChannelUser(std::map<User, std::string> *resp, Message &msg);
+	// void									partDefault(std::map<User, std::string> *resp, Message &msg, Channel* chan, std::list<std::string>::iterator it);
+	// void									partMultiple(std::map<User, std::string> *resp, Message &msg, Channel* chan, std::list<std::string>::iterator it);
 
 	//If no errors occurred return true, else returns false
 	bool						 			privmsgToUserCommand(Message* msg, std::map<User, std::string>* resp, const std::string& userNick);

@@ -85,6 +85,26 @@ void Server::sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<Us
 
 // -------------------------------- PART --------------------------------
 
+// void	Server::partDefault(std::map<User, std::string> *resp, Message &msg, Channel* chan, std::list<std::string>::iterator it)
+// {
+
+// }
+
+// void	Server::partMultiple(std::map<User, std::string> *resp, Message &msg, Channel* chan, std::list<std::string>::iterator it)
+// {
+// 	std::list<std::string> msgParams = msg.getParams();
+
+// 	if (msgParams.size() == 1) {
+// 		sendToChannel(resp, *chan, ":" + msg.getSenderUser().getNick() + "!" \
+// 			+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+// 		chan->removeUser(msg.getSenderUser());
+// 	} else {
+// 		sendToChannel(resp, *chan, ":" + msg.getSenderUser().getNick() + "!" \
+// 			+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+// 		chan->removeUser(msg.getSenderUser());
+// 	}
+// }
+
 std::map<User, std::string>	Server::partCommand(Message& msg)
 {
 	std::map<User, std::string> resp;
@@ -96,17 +116,17 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before joining any channels");
 	} else {
 		std::list<std::string>	inputlist = getRecieversFromInputList(msgParams.front());
-		if (inputlist.size() > 1) {
-			std::list<std::string>::iterator	it = inputlist.begin();
-			for (; it != inputlist.end(); it++)
-			{
-				std::map<std::string, Channel>::iterator	chan = _channels.find(*it);
+		std::list<std::string>::iterator	it = inputlist.begin();
+		for (; it != inputlist.end(); it++)
+		{
+			std::map<std::string, Channel>::iterator	chan = _channels.find(*it);
 
-				if (chan == _channels.end()){
-					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() + " " + *it + " :No such channel");
-				} else if (chan->second.findUser(msg.getSenderUser()) == -1){
-					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + *it + " :You're not on that channel");
-				} else if (msgParams.size() == 1) {
+			if (chan == _channels.end()){
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() + " " + *it + " :No such channel");
+			} else if (chan->second.findUser(msg.getSenderUser()) == -1){
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + *it + " :You're not on that channel");
+			} else {
+				if (msgParams.size() == 1) {
 					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 						+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
@@ -115,24 +135,20 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 						+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
 				}
+				// partMultiple(&resp, msg, &chan->second, it);
+				// in this case leave from all of the channels listed, delimited by a comma
 			}
-			// in this case leave from all of the channels listed, delimited by a comma
-		} else {
-			std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
-
-			if (chan == _channels.end()){
-				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :No such channel");
-			} else if (chan->second.findUser(msg.getSenderUser()) == -1){
-				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :You're not on that channel");
-			} else if (msgParams.size() == 1) {
-				sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-					+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
-				chan->second.removeUser(msg.getSenderUser());
-			} else {
-				sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-					+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front() + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
-				chan->second.removeUser(msg.getSenderUser());
-			}
+			// } else {
+			// 	if (msgParams.size() == 1) {
+			// 		sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+			// 			+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+			// 		chan->second.removeUser(msg.getSenderUser());
+			// 	} else {
+			// 		sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
+			// 			+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front() + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+			// 		chan->second.removeUser(msg.getSenderUser());
+			// 	}
+			// }
 		}
 	}
 	return resp;
