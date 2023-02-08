@@ -8,7 +8,6 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 	std::map<User, std::string> resp;
 	std::list<std::string> params = msg.getParams();
 
-
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 2) {	//command valid for 1 to 2 params
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
@@ -36,6 +35,15 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 			_channels.insert(std::pair<std::string, Channel>(chanName, newchan));
 			sendInfoToNewJoin(msg, &(newchan), &resp);
 		}
+	}
+	Message	relist;
+	relist.setCommand("LIST");
+	relist.setParams(std::list<std::string> ());
+	std::map<int, User>::iterator	it = _users.begin();
+	for (; it != _users.end(); it++)
+	{
+		relist.setSenderUser(&it->second);
+		listChannels(&resp, &relist, "");
 	}
 	return resp;
 }
