@@ -82,6 +82,19 @@ std::list<std::string> getRecieversFromInputList(std::string str) {
 	return userList;
 }
 
+void	Server::refreshList(std::map<User, std::string>* resp)
+{
+	Message	relist;
+	relist.setCommand("LIST");
+	relist.setParams(std::list<std::string> ());
+	std::map<int, User>::iterator	it = _users.begin();
+	for (; it != _users.end(); it++)
+	{
+		relist.setSenderUser(&it->second);
+		listChannels(resp, &relist, "");
+	}
+}
+
 // ------------------------------- Command functions ----------------------------------
 
 // -------------------------------- PING --------------------------------

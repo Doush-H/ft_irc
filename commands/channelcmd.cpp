@@ -13,38 +13,36 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before joining any channels");
 	} else {
-		std::string chanName = params.front();
-		std::string successfulJoin = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + chanName;
-		std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
-		if (chan != _channels.end()) {	//case channel is found, join it as a regular user (no priority)
-			std::string key = params.back();
-			if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key) {	//if key is required, accept if key is correct
-				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
-				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
-				sendInfoToNewJoin(msg, &(chan->second), &resp);
-			} else if (msg.getParams().size() == 2) {	//else reject if key is incorrect
-				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
-			} else {	//if no key then join the channel directly
-				sendToChannel(&resp, _channels.find(chanName)->second, successfulJoin);
-				chan->second.addUser(msg.getSenderUser(), NO_PRIO);
-				sendInfoToNewJoin(msg, &(chan->second), &resp);
+		std::list<std::string>	inputlist = getRecieversFromInputList(params.front());
+		std::list<std::string>::iterator	it = inputlist.begin();
+		for (; it != inputlist.end(); it++)
+		{
+			std::string successfulJoin = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + *it;
+			std::map<std::string, Channel>::iterator	chan = _channels.find(*it);
+
+			if (chan == _channels.end()){
+				Channel	newchan	= Channel(*it, NONE);
+				newchan.addUser(msg.getSenderUser(), OPERATOR);
+				_channels.insert(std::pair<std::string, Channel>(*it, newchan));
+				sendInfoToNewJoin(msg, &(newchan), &resp);
+			} else {
+				std::string key = params.back();
+				if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key) {	//if key is required, accept if key is correct
+					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
+					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
+					sendInfoToNewJoin(msg, &(chan->second), &resp);
+				} else if (msg.getParams().size() == 2) {	//else reject if key is incorrect
+					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
+				} else {	//if no key then join the channel directly
+					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin);
+					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
+					sendInfoToNewJoin(msg, &(chan->second), &resp);
+				}
+				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + *it + " :You're not on that channel");
 			}
-		} else {	//if channel does not exist, create one and add the user as an operator
-			Channel	newchan	= Channel(chanName, NONE);
-			newchan.addUser(msg.getSenderUser(), OPERATOR);
-			_channels.insert(std::pair<std::string, Channel>(chanName, newchan));
-			sendInfoToNewJoin(msg, &(newchan), &resp);
 		}
 	}
-	Message	relist;
-	relist.setCommand("LIST");
-	relist.setParams(std::list<std::string> ());
-	std::map<int, User>::iterator	it = _users.begin();
-	for (; it != _users.end(); it++)
-	{
-		relist.setSenderUser(&it->second);
-		listChannels(&resp, &relist, "");
-	}
+	refreshList(&resp);
 	return resp;
 }
 
@@ -118,6 +116,7 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 			}
 		}
 	}
+	refreshList(&resp);
 	return resp;
 }
 

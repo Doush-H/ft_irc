@@ -185,6 +185,7 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				inviteCommand(Message& msg);
 
 	// A helper funnction to be used by other functions (including listCommand()), pass the channels param as an empty string in order to list all channels
+	void									refreshList(std::map<User, std::string>* resp);
 	void 									listChannels(std::map<User, std::string>* resp, Message* msg, std::string channels);
 	void									sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp);
 	void 									whoEveryone(std::map<User, std::string>* resp, Message* msg, const std::string& mask);
