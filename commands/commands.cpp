@@ -52,7 +52,7 @@ bool containsMask(const char* mask, const char* str) {
 }
 
 void Server::checkIfRegistered(Message& msg, std::map<User, std::string>* resp) {
-	if (!msg.getSenderUser().getFullName().empty() && !msg.getSenderUser().getNick().empty() && msg.getSenderUser().isAllowConnection() && !msg.getSenderUser().isRegistered()) {
+	if (msg.getSenderUser().getFullName().compare("*") && msg.getSenderUser().getNick().compare("*") && msg.getSenderUser().isAllowConnection() && !msg.getSenderUser().isRegistered()) {
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "001 " + msg.getSenderUser().getNick() + " :Welcome to our irc server " + msg.getSenderUser().getNick());
 		msg.getSenderUser().setIsRegistered(true);
 		listChannels(resp, &msg, "");

@@ -85,26 +85,6 @@ void Server::sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<Us
 
 // -------------------------------- PART --------------------------------
 
-// void	Server::partDefault(std::map<User, std::string> *resp, Message &msg, Channel* chan, std::list<std::string>::iterator it)
-// {
-
-// }
-
-// void	Server::partMultiple(std::map<User, std::string> *resp, Message &msg, Channel* chan, std::list<std::string>::iterator it)
-// {
-// 	std::list<std::string> msgParams = msg.getParams();
-
-// 	if (msgParams.size() == 1) {
-// 		sendToChannel(resp, *chan, ":" + msg.getSenderUser().getNick() + "!" \
-// 			+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
-// 		chan->removeUser(msg.getSenderUser());
-// 	} else {
-// 		sendToChannel(resp, *chan, ":" + msg.getSenderUser().getNick() + "!" \
-// 			+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
-// 		chan->removeUser(msg.getSenderUser());
-// 	}
-// }
-
 std::map<User, std::string>	Server::partCommand(Message& msg)
 {
 	std::map<User, std::string> resp;
@@ -135,20 +115,7 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 						+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
 				}
-				// partMultiple(&resp, msg, &chan->second, it);
-				// in this case leave from all of the channels listed, delimited by a comma
 			}
-			// } else {
-			// 	if (msgParams.size() == 1) {
-			// 		sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-			// 			+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
-			// 		chan->second.removeUser(msg.getSenderUser());
-			// 	} else {
-			// 		sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-			// 			+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + msgParams.front() + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
-			// 		chan->second.removeUser(msg.getSenderUser());
-			// 	}
-			// }
 		}
 	}
 	return resp;
