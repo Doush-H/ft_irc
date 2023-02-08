@@ -178,7 +178,7 @@ std::map<User, std::string>	Server::modeCommand(Message& msg)
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 3) {	//command valid for 2 to 3 params
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before joining any channels");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before using MODE on any channels");
 	} else if (msgParams.size() == 1) {
 		modeReturnFlags(&resp, msg);
 	} else if (msgParams.size() == 2) {

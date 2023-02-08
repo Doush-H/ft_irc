@@ -83,23 +83,6 @@ void	Channel::addUser(User &user, privilege priv)
 		_users.insert(std::pair<const User *, privilege>(&user, priv));
 }
 
-#include <iostream>
-
-const std::string	Channel::constructWho(const User &user)
-{
-	std::string	ret;
-	std::map<const User *, privilege>::iterator	it = _users.begin();
-
-	std::cout << "here instead\n";
-	ret += ":42irc.com 352 " + user.getNick() + " * " + user.getNick() \
-		+ " 42irc.com * :" + user.getFullName() + "\n\r";
-	for (; it != _users.end(); it++)
-		if (&user != it->first && _users.size() > 0)
-			ret += ":42irc.com 352 " + user.getNick() + " * " + it->first->getNick() \
-				+ " 42irc.com * :" + it->first->getFullName() + "\n\r";
-	ret +=  ":42irc.com 315 " + user.getNick() + " * :End of /WHO list";
-	return ret;
-}
 
 bool	Channel::checkModes(int modes) const
 {

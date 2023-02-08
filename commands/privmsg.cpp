@@ -8,6 +8,11 @@ std::map<User, std::string> Server::privmsgCommand(Message& msg) {
 	std::map<User, std::string> resp;
 	std::list<std::string> msgParams = msg.getParams();
 
+	if (!msg.getSenderUser().isRegistered()) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before using this command");
+		return resp;
+	}
+
 	std::list<std::string> recievers = getRecieversFromInputList(msg.getParams().front());
 	std::list<std::string>::iterator it = recievers.begin();
 	while (it != recievers.end()) {

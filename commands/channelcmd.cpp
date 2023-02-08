@@ -147,7 +147,10 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 		}
 	} else if (msg.getParams().size() == 2){	//case change topic
 		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
-		if (!chan->second.checkModes(TOPIC_RESTRICTED) || chan->second.findUser(msg.getSenderUser()) == OPERATOR) {	//if user has the right privileges then set new topic
+		if (chan == _channels.end()) {
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
+				+ " " + msgParams.front() + " :No such channel");
+		} else if (!chan->second.checkModes(TOPIC_RESTRICTED) || chan->second.findUser(msg.getSenderUser()) == OPERATOR) {	//if user has the right privileges then set new topic
 			chan->second.setTopic(msgParams.back());
 			sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 				+ msg.getSenderUser().getName() + "@127.0.0.1 TOPIC " + msgParams.front() + " :" + msgParams.back()); // Topic change should also inform everyone in the channel

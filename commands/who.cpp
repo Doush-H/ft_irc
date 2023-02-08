@@ -27,7 +27,7 @@ void Server::whoEveryone(std::map<User, std::string>* resp, Message* msg, const 
 	std::string respMessage = "";
 	std::map<int, User>::const_iterator it = _users.begin();
 	while (it != _users.end()) {
-		if ((mask.empty() || containsMask(mask.c_str(), msg->getSenderUser().getNick().c_str())) && it->second.getNick() != msg->getSenderUser().getNick())
+		if (mask.empty() || containsMask(mask.c_str(), msg->getSenderUser().getNick().c_str()))
 			respMessage.append(SERV_PREFIX "352 " + msg->getSenderUser().getNick() + " * " + it->second.getName() + " * 42irc.com " + it->second.getNick() + " H :0 " + it->second.getFullName() + "\r\n");
 		it++;
 	}

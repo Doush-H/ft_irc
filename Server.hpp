@@ -102,58 +102,58 @@ class SendingTheMsgFailedException : public std::exception {
 	Server(char** argv);
 
 	// ---------------- Getters and Setters ---------------------
-	int 			getPort() const;
-	void 			setPort(int port);
-	const 			std::string& getPassword() const;
-	void 			setPassword(const std::string& password);
-	bool 			isStop() const;
-	void 			setStop(bool stop);
-	int 			getListeningSocket() const;
-	void 			setListeningSocket(int listeningSocket);
-	nfds_t 			getActivePoll() const;
-	void 			setActivePoll(nfds_t pollSize);
+	int 									getPort() const;
+	void 									setPort(int port);
+	const 									std::string& getPassword() const;
+	void 									setPassword(const std::string& password);
+	bool 									isStop() const;
+	void 									setStop(bool stop);
+	int 									getListeningSocket() const;
+	void 									setListeningSocket(int listeningSocket);
+	nfds_t 									getActivePoll() const;
+	void 									setActivePoll(nfds_t pollSize);
 
 	// --------------------- Methods ------------------------
 
 	// Starts the server and contains the main loop
-	void 								start();
+	void 									start();
 
 	// Contains the setup of the server
-	void 								setupSocket();
+	void 									setupSocket();
 
 	// Accepts new users
-	void 								acceptUser();
+	void 									acceptUser();
 
 	// Reads , parses and responds to commands from user with index i in the poll array
-	void 								executeCommand(int i);
+	void 									executeCommand(int i);
 
 	// Removes a user from user map and poll array (should probably close the fds too)
-	void 								removeUser(int fd);
-	void 								removeUserFromChannels(const User& user);
+	void 									removeUser(int fd);
+	void 									removeUserFromChannels(const User& user);
 
 	// -------------------- Poll handling --------------------
 
 	// Adds the new users to poll array
-	void 								addToPoll(int fd);
+	void 									addToPoll(int fd);
 
 	// Removes user with index i from the poll array
-	void 								removeFromPoll(int i);
+	void 									removeFromPoll(int i);
 
 	// Find the correct command and call it
-	std::map<User, std::string>			commandCall(Message& msg);
+	std::map<User, std::string>				commandCall(Message& msg);
 
 	// Send the response back to the user
-	void								sendResponse(std::map<User, std::string>* responses);
+	void									sendResponse(std::map<User, std::string>* responses);
 
 	// ----------------------- Util commands ---------------------------
 
 	/// @param resp the map to which you want to add a new response
 	/// @param reciever reciever of the new response
 	/// @param respMessage the message that's gonna be sent to the reciever
-	void								addResponse(std::map<User, std::string>* resp, const User& receiver, const std::string& respMessage);
+	void									addResponse(std::map<User, std::string>* resp, const User& receiver, const std::string& respMessage);
 
-	// Returns an interator to the found user else an iterator pointing to _users.end()
-	std::map<int, User>::iterator		findUserByNick(std::string nickName);
+	// Returns an interator to the found user else returns an iterator pointing to _users.end()
+	std::map<int, User>::iterator			findUserByNick(std::string nickName);
 
 	/// @param resp the response map to which the responses will be added
 	/// @param channel the channel to which the message will be sent
@@ -165,6 +165,9 @@ class SendingTheMsgFailedException : public std::exception {
 
 	// checks if the user who sent the message is registered, if yes then it will add the welcome message
 	void									checkIfRegistered(Message& msg, std::map<User, std::string>* resp);
+
+	// Check if the given parameter containss any character from chars string, if yes returns true else returns false
+	bool									checkForbidenChars(const std::string& str, const std::string& chars);
 
 	// -------------------- Commands (everyone of them will return the response that they generated) --------------------
 	// -------------------- The return from command functions is a map now in order to have the ability to send messages to multiple people at the same time --------------------
@@ -184,8 +187,8 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				listCommand(Message& msg);
 	std::map<User, std::string>				inviteCommand(Message& msg);
 
-	// A helper funnction to be used by other functions (including listCommand()), pass the channels param as an empty string in order to list all channels
 	void									refreshList(std::map<User, std::string>* resp);
+	// A helper funnction to be used by other functions (including listCommand()), pass the channels param as an empty string in order to list all channels
 	void 									listChannels(std::map<User, std::string>* resp, Message* msg, std::string channels);
 	void									sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp);
 	void 									whoEveryone(std::map<User, std::string>* resp, Message* msg, const std::string& mask);
@@ -203,5 +206,9 @@ class SendingTheMsgFailedException : public std::exception {
 	bool 									privmsgToChannelCommand(Message* msg, std::map<User, std::string>* resp, const std::string& chanName);
 };
 
+// ------------ Helper functions ------------
+
+std::list<std::string> getRecieversFromInputList(std::string str);
+bool containsMask(const char* mask, const char* str);
 
 #endif //SERVER_HPP
