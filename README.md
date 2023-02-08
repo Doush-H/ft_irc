@@ -3,9 +3,7 @@ Simple Irc server (in progress)
 
 
 ## To-do:
-- ### kewin: join or part multiple
-  - JOIN (finish)
-  - PART (needs to send a message to other users when someone leaves, use sendToChannel)
+- ### kewin:
 
 - ### Doush:
      
