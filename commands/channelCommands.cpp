@@ -205,8 +205,8 @@ std::map<User, std::string>	Server::kickCommand(Message& msg)
 	std::map<User, std::string> resp;
 	std::list<std::string> msgParams = msg.getParams();
 	std::list<std::string>::iterator modesIt = msgParams.begin();
-	std::advance(modesIt, 1);
 
+	std::advance(modesIt, 1);
 	if (msg.getParams().size() < 2 || msg.getParams().size() > 3) {	//command valid for 1 to 3 params
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet

@@ -44,7 +44,7 @@ static int	flagGlossary(char c)
 {
 	switch (c)
 	{
-	case 's':
+	case 's':	//channel modes
 		return (SECRET);
 	case 'p':
 		return (PRIV);
@@ -54,12 +54,12 @@ static int	flagGlossary(char c)
 		return (INVITE_ONLY);
 	case 't':
 		return (TOPIC_RESTRICTED);
-	case 'o':
+	case 'k':
+		return (KEY_PROTECTED);
+	case 'o':	//user modes
 		return (OPERATOR);
 	case 'v':
 		return (VOICE_PRIO);
-	case 'k':
-		return (KEY_PROTECTED);
 	default:
 		break;
 	}
@@ -68,7 +68,7 @@ static int	flagGlossary(char c)
 
 // I will indicate flags to add in the least significant byte
 // I will indicate flags to remove in the second least significant byte
-// -1 will be an error case
+// -n will be an error case, n being the character value of flag attempted
 static int	parseFlags(std::string str)
 {
 	int	flags = 0;
@@ -96,8 +96,8 @@ static int	parseFlags(std::string str)
 void	Server::modeReturnFlags(std::map<User, std::string> *resp, Message &msg)
 {
 	std::list<std::string> msgParams = msg.getParams();
-	//in this case I will return the current modes on the channel
 	std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
+
 	if (chan == _channels.end()) {	//check if channel exists
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
 			+ " " + msgParams.front() + " :No such channel");
@@ -114,6 +114,7 @@ void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 	std::advance(modesIt, 1);
 	std::string	chanName = msgParams.front();
 	std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
+
 	int	flags = parseFlags(*modesIt);
 	if (chan == _channels.end()) {	//check if channel exists
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
@@ -141,7 +142,6 @@ void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 		}
 		if (removeflags & KEY_PROTECTED)
 			chan->second.setChannelKey("");
-
 		// setup and add responses
 		User temp = msg.getSenderUser();
 		std::string	messageToUser = SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
