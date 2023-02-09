@@ -236,6 +236,8 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 		response = listCommand(msg);
 	} else if (msg.getCommand() == "INVITE") {
 		response = inviteCommand(msg);
+	} else if (msg.getCommand() == "KICK") {
+		response = kickCommand(msg);
 	} else {
 		addResponse(&response, msg.getSenderUser(), SERV_PREFIX "421 " + msg.getCommand() + " :" + msg.getCommand());
 	}
