@@ -14,7 +14,15 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before joining any channels");
 	} else {
 		std::list<std::string>	inputlist = getRecieversFromInputList(params.front());
+		std::list<std::string>	paramlist = getRecieversFromInputList(params.back()); // get the password list
 		std::list<std::string>::iterator	it = inputlist.begin();
+		std::list<std::string>::iterator	itParams = paramlist.begin();
+
+		if (inputlist.size() < paramlist.size()) { // if too many passwords provided return error
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Too many parameters provided");
+			return resp;
+		}
+
 		for (; it != inputlist.end(); it++)
 		{
 			std::string successfulJoin = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + *it;
@@ -22,9 +30,10 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 
 			if (chan == _channels.end()){
 				Channel	newchan	= Channel(*it, NONE);
-				if (params.size() == 2) { // if password was provided set the password
-					newchan.setChannelKey(params.back());
+				if (params.size() == 2 && itParams != paramlist.end()) { // if password was provided set the password
+					newchan.setChannelKey(*itParams);
 					newchan.setModes(KEY_PROTECTED);
+					itParams++;
 				}
 				newchan.addUser(msg.getSenderUser(), OPERATOR);
 				_channels.insert(std::pair<std::string, Channel>(*it, newchan));
@@ -42,7 +51,6 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				}
-				// addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + *it + " :You're not on that channel"); // ???
 			}
 		}
 	}
