@@ -186,6 +186,7 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				quitCommand(Message& msg);
 	std::map<User, std::string>				listCommand(Message& msg);
 	std::map<User, std::string>				inviteCommand(Message& msg);
+	std::map<User, std::string>				kickCommand(Message& msg);
 
 	void									refreshList(std::map<User, std::string>* resp);
 	// A helper funnction to be used by other functions (including listCommand()), pass the channels param as an empty string in order to list all channels
@@ -198,6 +199,8 @@ class SendingTheMsgFailedException : public std::exception {
 	void									modeReturnFlags(std::map<User, std::string> *resp, Message &msg);
 	void									modeChangeChannel(std::map<User, std::string> *resp, Message &msg);
 	void									modeChangeChannelUser(std::map<User, std::string> *resp, Message &msg);
+	void 									kickNoComment(std::map<User, std::string>* resp, Message msg, Channel &chan, User &rm);
+	void 									kickComment(std::map<User, std::string>* resp, Message msg, Channel &chan, User &rm);
 
 	//If no errors occurred return true, else returns false
 	bool						 			privmsgToUserCommand(Message* msg, std::map<User, std::string>* resp, const std::string& userNick);

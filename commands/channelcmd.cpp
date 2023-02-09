@@ -1,7 +1,6 @@
 #include "Server.hpp"
 
 std::list<std::string> getRecieversFromInputList(std::string str);
-
 // -------------------------------- JOIN --------------------------------
 
 std::map<User, std::string> Server::joinCommand(Message& msg){
@@ -120,6 +119,8 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 					chan->second.removeUser(msg.getSenderUser());
 				}
 			}
+			if (chan->second.countUsers() == 0)
+				_channels.erase(chan);
 		}
 	}
 	refreshList(&resp);
@@ -163,6 +164,58 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 		} else {	//otherwise reject change and return relevant error
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " \
 				+ msgParams.front() + " :You're not channel operator");
+		}
+	}
+	return resp;
+}
+ 
+void	Server::kickNoComment(std::map<User, std::string>* resp, Message msg, Channel &chan, User &rm)
+{
+	std::list<std::string> msgParams = msg.getParams();
+
+	sendToChannel(resp, chan, ":" + msg.getSenderUser().getNick() + "!" \
+		+ msg.getSenderUser().getName() + "@127.0.0.1 KICK " + msgParams.front() + " " + msgParams.back());
+	chan.removeUser(rm);
+}
+
+void	Server::kickComment(std::map<User, std::string>* resp, Message msg, Channel &chan, User &rm)
+{
+	std::list<std::string> msgParams = msg.getParams();
+	std::string	chanName = msgParams.front();
+	msgParams.pop_front();
+
+	sendToChannel(resp, chan, ":" + msg.getSenderUser().getNick() + "!" \
+		+ msg.getSenderUser().getName() + "@127.0.0.1 KICK " + chanName + " " + msgParams.front() + " :" + msgParams.back());
+	chan.removeUser(rm);
+}
+
+std::map<User, std::string>	Server::kickCommand(Message& msg)
+{
+	std::map<User, std::string> resp;
+	std::list<std::string> msgParams = msg.getParams();
+	std::list<std::string>::iterator modesIt = msgParams.begin();
+	std::advance(modesIt, 1);
+
+	if (msg.getParams().size() < 2 || msg.getParams().size() > 3) {	//command valid for 1 to 3 params
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
+	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before using MODE on any channels");
+	} else {
+		std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
+		std::map<int, User>::iterator rm = findUserByNick(*modesIt);
+
+		if (chan == _channels.end()) {
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
+				+ " " + msgParams.front() + " :No such channel");
+		} else if (chan->second.findUser(rm->second) == -1) {
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "441 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :They aren't on that channel");
+		} else if (chan->second.findUser(msg.getSenderUser()) != OPERATOR) {
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " \
+				+ msgParams.front() + " :You're not channel operator");
+		} else if (msgParams.size() == 2) {
+			kickNoComment(&resp, msg, chan->second, rm->second);
+		} else if (msgParams.size() == 3) {
+			kickComment(&resp, msg, chan->second, rm->second);
 		}
 	}
 	return resp;
