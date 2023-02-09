@@ -32,6 +32,10 @@ static std::string	constructFlags(const Channel &chan)
 		ret += "i";
 	if (chan.checkModes(TOPIC_RESTRICTED))
 		ret += "t";
+	if (chan.checkModes(KEY_PROTECTED)) {
+		ret += "k";
+		ret += " " + chan.getChannelKey();
+	}
 	return ret;
 }
 
@@ -54,6 +58,8 @@ static int	flagGlossary(char c)
 		return (OPERATOR);
 	case 'v':
 		return (VOICE_PRIO);
+	case 'k':
+		return (KEY_PROTECTED);
 	default:
 		break;
 	}
@@ -104,13 +110,15 @@ void	Server::modeReturnFlags(std::map<User, std::string> *resp, Message &msg)
 void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 {
 	std::list<std::string> msgParams = msg.getParams();
+	std::list<std::string>::iterator modesIt = msgParams.begin();
+	std::advance(modesIt, 1);
 	std::string	chanName = msgParams.front();
 	std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
-	int	flags = parseFlags(msgParams.back());
+	int	flags = parseFlags(*modesIt);
 	if (chan == _channels.end()) {	//check if channel exists
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
 			+ " " + msgParams.front() + " :No such channel");
-	} else if (!msgParams.back().compare("b")) {	//to get rid of the annoying banmask request I just send back end of ban list
+	} else if (!modesIt->compare("b")) {	//to get rid of the annoying banmask request I just send back end of ban list
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "368 " + msg.getSenderUser().getNick() \
 			+ " " + chanName + " :End of Channel Ban List");
 	} else if (flags < 0) {	//check if flags are valid
@@ -122,12 +130,31 @@ void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 		flags = flags >> 24;
 		chan->second.setModes(flags);
 		chan->second.removeModes(removeflags);
-		std::string	message = SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
-			+ " " + chanName + " " + msgParams.back();
-		User	temp = msg.getSenderUser();
-		addResponse(resp, msg.getSenderUser(), message);
-		sendToChannel(resp, chan->second, ":" + temp.getNick() + "!" + temp.getName() \
-			+ "@127.0.0.1 MODE " + msgParams.front() + " " + msgParams.back());
+
+		// Check if the key was set and enough params were provided
+		if (flags & KEY_PROTECTED) {
+			if (msgParams.size() == 2) {
+				addResponse(resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
+				return;
+			}
+			chan->second.setChannelKey(msgParams.back());
+		}
+		if (removeflags & KEY_PROTECTED)
+			chan->second.setChannelKey("");
+
+		// setup and add responses
+		User temp = msg.getSenderUser();
+		std::string	messageToUser = SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
+			+ " " + chanName + " " + *modesIt;
+		std::string	messageToChannel = ":" + temp.getNick() + "!" + temp.getName() \
+			+ "@127.0.0.1 MODE " + msgParams.front() + " " + *modesIt;
+		
+		if (flags & KEY_PROTECTED) {
+			messageToUser += " " + msgParams.back();
+			messageToChannel += " " + msgParams.back();
+		}
+		addResponse(resp, msg.getSenderUser(), messageToUser);
+		sendToChannel(resp, chan->second, messageToChannel);
 	}
 }
 
@@ -174,6 +201,9 @@ std::map<User, std::string>	Server::modeCommand(Message& msg)
 {
 	std::map<User, std::string> resp;
 	std::list<std::string> msgParams = msg.getParams();
+	std::list<std::string>::iterator modesIt = msgParams.begin();
+	std::advance(modesIt, 1);
+
 
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 3) {	//command valid for 2 to 3 params
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
@@ -181,7 +211,7 @@ std::map<User, std::string>	Server::modeCommand(Message& msg)
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before using MODE on any channels");
 	} else if (msgParams.size() == 1) {
 		modeReturnFlags(&resp, msg);
-	} else if (msgParams.size() == 2) {
+	} else if (msgParams.size() == 2 || modesIt->find('k') != std::string::npos) {
 		modeChangeChannel(&resp, msg);
 	} else if (msgParams.size() == 3) {
 		modeChangeChannelUser(&resp, msg);

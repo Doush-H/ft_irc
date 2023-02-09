@@ -22,23 +22,27 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 
 			if (chan == _channels.end()){
 				Channel	newchan	= Channel(*it, NONE);
+				if (params.size() == 2) { // if password was provided set the password
+					newchan.setChannelKey(params.back());
+					newchan.setModes(KEY_PROTECTED);
+				}
 				newchan.addUser(msg.getSenderUser(), OPERATOR);
 				_channels.insert(std::pair<std::string, Channel>(*it, newchan));
 				sendInfoToNewJoin(msg, &(newchan), &resp);
 			} else {
 				std::string key = params.back();
-				if (msg.getParams().size() == 2 && chan->second.getChannelKey() == key) {	//if key is required, accept if key is correct
+				if (params.size() == 2 && chan->second.checkModes(KEY_PROTECTED) && chan->second.getChannelKey() == key) {	//if key is required and the correct key was provided accept the person
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
 					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
-				} else if (msg.getParams().size() == 2) {	//else reject if key is incorrect
+				} else if (chan->second.checkModes(KEY_PROTECTED) && (params.size() == 1 || chan->second.getChannelKey() != key)) {	//else if key not provided or key not correct
 					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
 				} else {	//if no key then join the channel directly
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin);
 					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				}
-				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + *it + " :You're not on that channel");
+				// addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + *it + " :You're not on that channel"); // ???
 			}
 		}
 	}
@@ -72,6 +76,8 @@ void Server::sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<Us
 		privilege userPriv = it->second;
 		if (userPriv == OPERATOR)
 			respString.append("@");
+		else if (userPriv == VOICE_PRIO)
+			respString.append("+");
 		respString.append(user->getNick());
 		it++; // INCREMENT THE ITERATOR
 		if (it != users.end()) // CHECK IF LAST ONE, DON'T add space if the last one
