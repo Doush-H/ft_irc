@@ -177,6 +177,9 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 	return resp;
 }
  
+// -------------------------------- KICK --------------------------------
+
+
 void	Server::kickNoComment(std::map<User, std::string>* resp, Message msg, Channel &chan, User &rm)
 {
 	std::list<std::string> msgParams = msg.getParams();
