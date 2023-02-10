@@ -98,13 +98,8 @@ void	Server::modeReturnFlags(std::map<User, std::string> *resp, Message &msg)
 	std::list<std::string> msgParams = msg.getParams();
 	//in this case I will return the current modes on the channel
 	std::map<std::string, Channel>::iterator	chan = _channels.find(msgParams.front());
-	if (chan == _channels.end()) {	//check if channel exists
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
-			+ " " + msgParams.front() + " :No such channel");
-	} else {
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
-			+ " " + msgParams.front() + " " + constructFlags(chan->second));
-	}
+	addResponse(resp, msg.getSenderUser(), SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
+		+ " " + msgParams.front() + " " + constructFlags(chan->second));
 }
 
 void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
@@ -115,10 +110,7 @@ void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 	std::string	chanName = msgParams.front();
 	std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
 	int	flags = parseFlags(*modesIt);
-	if (chan == _channels.end()) {	//check if channel exists
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
-			+ " " + msgParams.front() + " :No such channel");
-	} else if (!modesIt->compare("b")) {	//to get rid of the annoying banmask request I just send back end of ban list
+	if (!modesIt->compare("b")) {	//to get rid of the annoying banmask request I just send back end of ban list
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "368 " + msg.getSenderUser().getNick() \
 			+ " " + chanName + " :End of Channel Ban List");
 	} else if (flags < 0) {	//check if flags are valid
@@ -166,10 +158,7 @@ void	Server::modeChangeChannelUser(std::map<User, std::string> *resp, Message &m
 	std::map<std::string, Channel>::iterator	chan = _channels.find(chanName);
 	std::map<int, User>::iterator	user = findUserByNick(msgParams.back());
 	int	flags = parseFlags(msgParams.front());
-	if (chan == _channels.end()) {	//check if channel exists
-		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
-			+ " " + chanName + ":No such channel");
-	} else if (flags < 0) {	//check if flags are valid
+	if (flags < 0) {	//check if flags are valid
 		addResponse(resp, msg.getSenderUser(), SERV_PREFIX "472 " + msg.getSenderUser().getNick() \
 			+ " " + static_cast <char> (std::abs(flags)) + " :is unknown mode char to me");
 	} else if (user == _users.end() || chan->second.findUser(user->second) == -1) {	//no such target user exists in channel
@@ -207,11 +196,38 @@ std::map<User, std::string>	Server::modeCommand(Message& msg)
 
 	if (msg.getParams().size() < 1 || msg.getParams().size() > 3) {	//command valid for 2 to 3 params
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
-	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
+		return resp;
+	}
+	
+	if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before using MODE on any channels");
-	} else if (msgParams.size() == 1) {
+		return resp;
+	}
+
+	std::string chanName = msgParams.front();
+	std::map<std::string, Channel>::iterator chanIt = _channels.find(chanName);
+
+	//check if channels exists
+	if (chanIt == _channels.end()) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
+			+ " " + msgParams.front() + " :No such channel");
+		return resp;
+	}
+
+	//return the modes of the channel
+	if (msgParams.size() == 1) {
 		modeReturnFlags(&resp, msg);
-	} else if (msgParams.size() == 2 || modesIt->find('k') != std::string::npos) {
+		return resp;
+	}
+
+	// if user wants to change modes check if he's operator and if he doesn't ask for the ban list
+	if (chanIt->second.findUser(msg.getSenderUser()) != OPERATOR && modesIt->compare("b") != 0) {
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() \
+			+ " " + chanName + " :You're not channel operator");
+		return resp;
+	}
+	
+	if (msgParams.size() == 2 || modesIt->find('k') != std::string::npos) {
 		modeChangeChannel(&resp, msg);
 	} else if (msgParams.size() == 3) {
 		modeChangeChannelUser(&resp, msg);

@@ -47,7 +47,7 @@ bool Server::privmsgToUserCommand(Message* msg, std::map<User, std::string>* res
 bool Server::privmsgToChannelCommand(Message* msg, std::map<User, std::string>* resp, const std::string& chanName) {
 	std::string senderPrefix = ":" + msg->getSenderUser().getNick() + "!" + msg->getSenderUser().getName();
 	std::string senderMessage = msg->getParams().back();
-	std::string cannotSendMessage = SERV_PREFIX "404 " + msg->getSenderUser().getNick() + " " + chanName + " :Cannot send to channel";
+	std::string cannotSendMessage = SERV_PREFIX "404 " + msg->getSenderUser().getNick() + " " + chanName + " :Can't send to channel";
 
 	std::list<std::string> msgParams = msg->getParams();
 
