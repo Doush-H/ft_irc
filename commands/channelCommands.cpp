@@ -13,23 +13,21 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "462 " + msg.getSenderUser().getNick() + " :Please log in before joining any channels");
 	} else {
 		std::list<std::string>	inputlist = getRecieversFromInputList(params.front());
-		std::list<std::string>	paramlist = getRecieversFromInputList(params.back()); // get the password list
+		std::list<std::string>	paramlist = getRecieversFromInputList(params.back());	// get the password list
 		std::list<std::string>::iterator	it = inputlist.begin();
 		std::list<std::string>::iterator	itParams = paramlist.begin();
 
-		if (inputlist.size() < paramlist.size()) { // if too many passwords provided return error
+		if (inputlist.size() < paramlist.size()) {	// if too many passwords provided return error
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Too many parameters provided");
 			return resp;
 		}
-
-		for (; it != inputlist.end(); it++)
-		{
+		for (; it != inputlist.end(); it++) {
 			std::string successfulJoin = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + *it;
 			std::map<std::string, Channel>::iterator	chan = _channels.find(*it);
 
-			if (chan == _channels.end()){
+			if (chan == _channels.end()) {
 				Channel	newchan	= Channel(*it, NONE);
-				if (params.size() == 2 && itParams != paramlist.end()) { // if password was provided set the password
+				if (params.size() == 2 && itParams != paramlist.end()) {	// if password was provided set the password
 					newchan.setChannelKey(*itParams);
 					newchan.setModes(KEY_PROTECTED);
 					itParams++;
@@ -37,6 +35,15 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				newchan.addUser(msg.getSenderUser(), OPERATOR);
 				_channels.insert(std::pair<std::string, Channel>(*it, newchan));
 				sendInfoToNewJoin(msg, &(newchan), &resp);
+			} else if (chan->second.checkModes(INVITE_ONLY)) {
+				if (chan->second.findUser(msg.getSenderUser()) == INVITED) {
+					chan->second.setPrivilege(msg.getSenderUser(), NO_PRIO);
+					sendInfoToNewJoin(msg, &(chan->second), &resp);
+					//change to NO_PRIO
+				} else {
+					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "473 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invite only (and you haven't been invited)");
+					//reject message
+				}
 			} else {
 				std::string key = params.back();
 				if (params.size() == 2 && chan->second.checkModes(KEY_PROTECTED) && chan->second.getChannelKey() == key) {	//if key is required and the correct key was provided accept the person
@@ -205,8 +212,8 @@ std::map<User, std::string>	Server::kickCommand(Message& msg)
 	std::map<User, std::string> resp;
 	std::list<std::string> msgParams = msg.getParams();
 	std::list<std::string>::iterator modesIt = msgParams.begin();
-	std::advance(modesIt, 1);
 
+	std::advance(modesIt, 1);
 	if (msg.getParams().size() < 2 || msg.getParams().size() > 3) {	//command valid for 1 to 3 params
 		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "461 " + msg.getSenderUser().getNick() + " " + msg.getCommand() + " :Not all parameters were provided");
 	} else if (!msg.getSenderUser().isRegistered()) {	//check if user not registered yet
@@ -218,11 +225,11 @@ std::map<User, std::string>	Server::kickCommand(Message& msg)
 		if (chan == _channels.end()) {
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
 				+ " " + msgParams.front() + " :No such channel");
-		} else if (chan->second.findUser(rm->second) == -1) {
-			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "441 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :They aren't on that channel");
 		} else if (chan->second.findUser(msg.getSenderUser()) != OPERATOR) {
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " \
 				+ msgParams.front() + " :You're not channel operator");
+		} else if (chan->second.findUser(rm->second) == -1) {
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "441 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :They aren't on that channel");
 		} else if (msgParams.size() == 2) {
 			kickNoComment(&resp, msg, chan->second, rm->second);
 		} else if (msgParams.size() == 3) {

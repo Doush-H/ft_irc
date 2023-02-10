@@ -1,16 +1,7 @@
 #include "Channel.hpp"
 #include "User.hpp"
 
-Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes)
-{
-	// _secret = false;
-	// _prv = false;
-	// _block_external_message = false;
-	// _moderated = false;
-	// _invite_only = false;
-	// _topic_change_restricted = false;
-	// _limit = -1;
-}
+Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes) {}
 
 Channel::~Channel() {}
 
@@ -38,14 +29,6 @@ void	Channel::setTopic(const std::string &topic)
 {
 	_topic = topic;
 }
-
-// void	Channel::removeAllGroups(const User &user)
-// {
-// 	removeOperator(user);
-// 	removeVoicePrio(user);
-// 	removeNoPrio(user);
-// 	removeBanned(user);
-// }
 
 size_t	Channel::countUsers() const
 {
@@ -77,8 +60,6 @@ void	Channel::removeUser(const User &user)
 
 void	Channel::addUser(User &user, privilege priv)
 {
-	// if (_limit != -1 && countUsers() >= _limit)
-	// 	return ;
 	if (_users.find(&user) == _users.end())
 		_users.insert(std::pair<const User *, privilege>(&user, priv));
 }

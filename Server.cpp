@@ -1,6 +1,5 @@
 #include "Server.hpp"
 
-
 // ------------------ Getters and Setters ------------------
 
 int Server::getPort() const {
