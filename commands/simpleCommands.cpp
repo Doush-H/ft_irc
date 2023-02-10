@@ -104,7 +104,6 @@ void Server::listChannels(std::map<User, std::string>* resp, Message* msg, std::
 	addResponse(resp, msg->getSenderUser(), SERV_PREFIX "323 " + msg->getSenderUser().getNick() + " :End of /LIST");
 }
 
-
 // -------------------------------- INVITE --------------------------------
 
 std::map<User, std::string> Server::inviteCommand(Message& msg) {
@@ -166,7 +165,8 @@ std::map<User, std::string> Server::inviteCommand(Message& msg) {
 	// Everything's fine invite the user
 	sendToChannel(&resp, *channel, SERV_PREFIX "341 " + msg.getSenderUser().getNick() + " " + userNick + " " + chanName);
 	addResponse(&resp, findUserByNick(userNick)->second, senderPrefix + "INVITE " + userNick + " " + chanName);
-	channel->setPrivilege(findUserByNick(userNick)->second, INVITED);
+	channel->addUser(userIt->second, INVITED);
+	// channel->setPrivilege(findUserByNick(userNick)->second, INVITED);
 
 	return resp;
 }
