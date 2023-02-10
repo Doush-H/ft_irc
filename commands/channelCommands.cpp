@@ -22,7 +22,8 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 			return resp;
 		}
 		for (; it != inputlist.end(); it++) {
-			std::string successfulJoin = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1 JOIN :" + *it;
+			std::string successfulJoin = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() \
+				+ "@" + msg.getSenderUser().getHostmask() + " JOIN :" + *it;
 			std::map<std::string, Channel>::iterator	chan = _channels.find(*it);
 
 			if (chan == _channels.end()) {
@@ -66,7 +67,7 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 
 void Server::sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp) {
 	// // ------------------ send the join confirmation ---------------------
-	std::string senderPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@127.0.0.1";
+	std::string senderPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask();
 	std::string respString = senderPrefix + " JOIN :" + channel->getName() + "\r\n";
 
 	// -------------------- send channel topic --------------------
@@ -126,11 +127,13 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 			} else {
 				if (msgParams.size() == 1) {
 					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-						+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+						+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " PART " + *it);
+						// inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
 				} else {
 					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-						+ msg.getSenderUser().getName() + "@127.0.0.1 PART " + *it + " :" + msgParams.back()); // inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
+						+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " PART " + *it + " :" + msgParams.back());
+						// inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
 				}
 			}
@@ -175,7 +178,8 @@ std::map<User, std::string>	Server::topicCommand(Message& msg)
 		} else if (!chan->second.checkModes(TOPIC_RESTRICTED) || chan->second.findUser(msg.getSenderUser()) == OPERATOR) {	//if user has the right privileges then set new topic
 			chan->second.setTopic(msgParams.back());
 			sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
-				+ msg.getSenderUser().getName() + "@127.0.0.1 TOPIC " + msgParams.front() + " :" + msgParams.back()); // Topic change should also inform everyone in the channel
+				+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " TOPIC " + msgParams.front() + " :" + msgParams.back());
+				// Topic change should also inform everyone in the channel
 		} else {	//otherwise reject change and return relevant error
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " \
 				+ msgParams.front() + " :You're not channel operator");
@@ -192,7 +196,7 @@ void	Server::kickNoComment(std::map<User, std::string>* resp, Message msg, Chann
 	std::list<std::string> msgParams = msg.getParams();
 
 	sendToChannel(resp, chan, ":" + msg.getSenderUser().getNick() + "!" \
-		+ msg.getSenderUser().getName() + "@127.0.0.1 KICK " + msgParams.front() + " " + msgParams.back());
+		+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " KICK " + msgParams.front() + " " + msgParams.back());
 	chan.removeUser(rm);
 }
 
@@ -203,7 +207,7 @@ void	Server::kickComment(std::map<User, std::string>* resp, Message msg, Channel
 	msgParams.pop_front();
 
 	sendToChannel(resp, chan, ":" + msg.getSenderUser().getNick() + "!" \
-		+ msg.getSenderUser().getName() + "@127.0.0.1 KICK " + chanName + " " + msgParams.front() + " :" + msgParams.back());
+		+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " KICK " + chanName + " " + msgParams.front() + " :" + msgParams.back());
 	chan.removeUser(rm);
 }
 

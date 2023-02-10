@@ -156,12 +156,16 @@ void Server::acceptUser() {
 	socklen_t userLen = sizeof(user);
 	int connectedUserFd;
 	connectedUserFd = accept(_listeningSocket, (sockaddr *)&user, &userLen);
+	char	host[INET_ADDRSTRLEN];	// get user's hostmask
+	inet_ntop(AF_INET, &user.sin_addr, host, INET_ADDRSTRLEN);
+	std::string	hostmask(host);
+    std::cout << "User hostmask: " << hostmask << std::endl;
 	std::cout << "User connected on fd: " << connectedUserFd << std::endl;
 	if (connectedUserFd == -1)
 		throw FailedToAcceptConnectionException();
 	std::cout << "Client connected" << std::endl;
 	addToPoll(connectedUserFd);
-	_users.insert(std::pair<int, User>(connectedUserFd, User(connectedUserFd)));
+	_users.insert(std::pair<int, User>(connectedUserFd, User(connectedUserFd, hostmask)));
 }
 
 void Server::executeCommand(int i) {

@@ -19,6 +19,9 @@
 # include <cstring>
 # include <sstream>
 
+# include <sys/types.h>
+# include <netinet/in.h>
+
 # define MSG_LEN 4096
 # define SERV_PREFIX ":42irc.com "
 

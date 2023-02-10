@@ -1,6 +1,6 @@
 #include "User.hpp"
 
-User::User(int fd) {
+User::User(int fd, std::string hostmask) : _hostmask(hostmask) {
 	_allowConnection = false;
 	_isRegistered = false;
 	_disconnect = false;
@@ -65,6 +65,10 @@ const std::string& User::getFullName() const {
 
 void User::setFullName(const std::string& fullName) {
 	User::_fullName = fullName;
+}
+
+const std::string& User::getHostmask() const {
+	return _hostmask;
 }
 
 bool User::isRegistered() const {

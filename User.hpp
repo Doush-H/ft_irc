@@ -8,13 +8,14 @@ private:
 	std::string 	_nick;
 	std::string 	_name;
 	std::string 	_fullName;
+	const std::string	_hostmask;
 	int 			_userFd;
 	bool 			_isRegistered;
 	bool 			_allowConnection;
 	bool			_disconnect;
 
 public:
-	User(int fd);
+	User(int fd, std::string hostmask);
 	User(const User& other);
 
 	//--------------- Getters and Setters ------------------
@@ -26,6 +27,7 @@ public:
 	void setName(const std::string& name);
 	const std::string& getFullName() const;
 	void setFullName(const std::string& fullName);
+	const std::string& getHostmask() const;
 	bool isRegistered() const;
 	void setIsRegistered(bool isRegistered);
 	bool isAllowConnection() const;

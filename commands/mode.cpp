@@ -138,8 +138,8 @@ void	Server::modeChangeChannel(std::map<User, std::string> *resp, Message &msg)
 		std::string	messageToUser = SERV_PREFIX "324 " + msg.getSenderUser().getNick() \
 			+ " " + chanName + " " + *modesIt;
 		std::string	messageToChannel = ":" + temp.getNick() + "!" + temp.getName() \
-			+ "@127.0.0.1 MODE " + msgParams.front() + " " + *modesIt;
-		
+			+ "@" + msg.getSenderUser().getHostmask() + " MODE " + msgParams.front() \
+			+ " " + *modesIt;
 		if (flags & KEY_PROTECTED) {
 			messageToUser += " " + msgParams.back();
 			messageToChannel += " " + msgParams.back();
@@ -181,7 +181,8 @@ void	Server::modeChangeChannelUser(std::map<User, std::string> *resp, Message &m
 			+ " " + chanName + " " + msgParams.front() + " " + msgParams.back();
 		addResponse(resp, msg.getSenderUser(), message);
 		sendToChannel(resp, chan->second, ":" + temp.getNick() + "!" + temp.getName() \
-			+ "@127.0.0.1 MODE " + chanName + " " + msgParams.front() + " " + msgParams.back());
+			+ "@" + msg.getSenderUser().getHostmask() + " MODE " + chanName + " " \
+			+ msgParams.front() + " " + msgParams.back());
 	}
 }
 
