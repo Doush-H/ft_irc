@@ -4,6 +4,8 @@
 # include <map>
 # include <list>
 # include <string>
+# include <pthread.h>
+# include <unistd.h>
 
 class	User;
 
@@ -24,6 +26,11 @@ private:
 	std::string							_topic;
 	std::map<const User *, privilege>	_users;
 	int									_modes;
+	size_t								_count;
+	//mthreading
+	std::map<std::string, privilege>	_userHistory;
+	pthread_mutex_t						_userMutex;
+	pthread_t							_botThread;
 public:
 	Channel(std::string name, int modes);
 	~Channel();
@@ -34,15 +41,25 @@ public:
 	const std::string&							getTopic() const;
 	void										setTopic(const std::string &key);
     //user getter setters
-	void										setPrivilege(const User &user, privilege priv);
+	// all user functions will have to be protected with a mutex
 	size_t										countUsers() const;
-	int											findUser(const User &user) const;
+	int											findUser(const User &user);
+	void										setPrivilege(const User &user, privilege priv);
 	void										removeUser(const User &user);
 	void										addUser(User &user, privilege privilege);
+	//
 	bool										checkModes(int modes) const;
 	void										setModes(int modes);
 	void										removeModes(int modes);
-	const std::map<const User *, privilege>&	getUsersMap() const;
+	// needs to be manually protected against data race
+	pthread_mutex_t								*getUserMutex();
+	std::map<const User *, privilege>&			getUsersMap();
+	//
+	//mthreading
+	void										generateChannelBot();
 };
+
+
+// void								*threadStart(void *data);
 
 #endif

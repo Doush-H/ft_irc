@@ -65,7 +65,7 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 	return resp;
 }
 
-void Server::sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp) {
+void Server::sendInfoToNewJoin(Message& msg, Channel* channel, std::map<User, std::string>* resp) {
 	// // ------------------ send the join confirmation ---------------------
 	std::string senderPrefix = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask();
 	std::string respString = senderPrefix + " JOIN :" + channel->getName() + "\r\n";

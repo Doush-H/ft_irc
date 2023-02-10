@@ -36,9 +36,9 @@ void Server::whoEveryone(std::map<User, std::string>* resp, Message* msg, const 
 
 }
 
-void Server::whoChannel(std::map<User, std::string>* resp, Message* msg, const Channel& channel, int priv) {
+void Server::whoChannel(std::map<User, std::string>* resp, Message* msg, Channel& channel, int priv) {
 	std::string respMessage = "";
-	std::map<const User *, privilege>::const_iterator it = channel.getUsersMap().begin();
+	std::map<const User *, privilege>::iterator it = channel.getUsersMap().begin();
 	if (channel.findUser(msg->getSenderUser()) != -1) { // check if the user belongs to the channel
 		while (it != channel.getUsersMap().end()) {
 			if ((priv == -1 || it->second == priv) && it->first->getNick() != msg->getSenderUser().getNick()) {
@@ -56,7 +56,7 @@ void Server::whoOneParam(std::map<User, std::string>* resp, Message* msg) {
 	std::string maskParam = msg->getParams().front();
 
 	if (maskParam.at(0) == '#' || maskParam.at(0) == '&') { // If channel who execute whoChannel
-		std::map<std::string, Channel>::const_iterator it = _channels.find(maskParam);
+		std::map<std::string, Channel>::iterator it = _channels.find(maskParam);
 		if (it == _channels.end()) { // if the channel was not found return error
 			addResponse(resp, msg->getSenderUser(), SERV_PREFIX "403 " + msg->getSenderUser().getNick() \
 				+ " " + maskParam + " :No such channel");
@@ -75,7 +75,7 @@ void Server::whoTwoParam(std::map<User, std::string>* resp, Message* msg) {
 	if (secondParam != "o") {
 		addResponse(resp, msg->getSenderUser(), SERV_PREFIX "461 " + msg->getSenderUser().getNick() + " " + msg->getCommand() + " :Wrong parameters for the command");
 	} else if (maskParam.at(0) == '#' || maskParam.at(0) == '&') {
-		std::map<std::string, Channel>::const_iterator it = _channels.find(maskParam);
+		std::map<std::string, Channel>::iterator it = _channels.find(maskParam);
 		if (it == _channels.end()) { // if the channel was not found return error
 			addResponse(resp, msg->getSenderUser(), SERV_PREFIX "403 " + msg->getSenderUser().getNick() \
 				+ " " + maskParam + " :No such channel");

@@ -51,14 +51,14 @@ bool Server::privmsgToChannelCommand(Message* msg, std::map<User, std::string>* 
 
 	std::list<std::string> msgParams = msg->getParams();
 
-	std::map<std::string, Channel>::const_iterator chanIt = _channels.find(chanName);
+	std::map<std::string, Channel>::iterator chanIt = _channels.find(chanName);
 
 	if (chanIt == _channels.end()) {
 		resp->clear();
 		addResponse(resp, msg->getSenderUser(), SERV_PREFIX "401 " + msg->getSenderUser().getNick() + " " + chanName + " :No such nick/channel");
 		return false;
 	} else {
-		const Channel& channel = chanIt->second;
+		Channel& channel = chanIt->second;
 		if (channel.findUser(msg->getSenderUser()) == -1) { // check if user is not in the channel, if that's the case send back error
 			resp->clear();
 			addResponse(resp, msg->getSenderUser(), cannotSendMessage);

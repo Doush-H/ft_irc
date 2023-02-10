@@ -11,9 +11,9 @@ void Server::addResponse(std::map<User, std::string>* resp, const User& receiver
 	}
 }
 
-void Server::sendToChannel(std::map<User, std::string>* resp, const Channel& channel, const std::string& message) {
+void Server::sendToChannel(std::map<User, std::string>* resp, Channel& channel, const std::string& message) {
 	std::map<const User *, privilege> users = channel.getUsersMap();
-	std::map<const User *, privilege>::const_iterator it = users.begin();
+	std::map<const User *, privilege>::iterator it = users.begin();
 
 	while (it != users.end()) {
 		addResponse(resp, *(it->first), message);
@@ -21,9 +21,9 @@ void Server::sendToChannel(std::map<User, std::string>* resp, const Channel& cha
 	}
 }
 
-void Server::sendMsgToChannel(std::map<User, std::string>* resp, const Channel& channel, Message* msg) {
+void Server::sendMsgToChannel(std::map<User, std::string>* resp, Channel& channel, Message* msg) {
 	std::map<const User *, privilege> users = channel.getUsersMap();
-	std::map<const User *, privilege>::const_iterator it = users.begin();
+	std::map<const User *, privilege>::iterator it = users.begin();
 	std::string senderPrefix = ":" + msg->getSenderUser().getNick() + "!" + msg->getSenderUser().getName();
 	std::string senderMessage = msg->getParams().back();
 

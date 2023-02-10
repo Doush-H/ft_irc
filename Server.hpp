@@ -161,10 +161,10 @@ class SendingTheMsgFailedException : public std::exception {
 	/// @param resp the response map to which the responses will be added
 	/// @param channel the channel to which the message will be sent
 	/// @param message the message that will be sent to the channel
-	void 									sendToChannel(std::map<User, std::string>* resp, const Channel& channel, const std::string& message);
+	void 									sendToChannel(std::map<User, std::string>* resp, Channel& channel, const std::string& message);
 
 	// sends a PRIVMSG to poeple in the channel excluding the sender User
-	void 									sendMsgToChannel(std::map<User, std::string>* resp, const Channel& channel, Message* msg);
+	void 									sendMsgToChannel(std::map<User, std::string>* resp, Channel& channel, Message* msg);
 
 	// checks if the user who sent the message is registered, if yes then it will add the welcome message
 	void									checkIfRegistered(Message& msg, std::map<User, std::string>* resp);
@@ -194,9 +194,9 @@ class SendingTheMsgFailedException : public std::exception {
 	void									refreshList(std::map<User, std::string>* resp);
 	// A helper funnction to be used by other functions (including listCommand()), pass the channels param as an empty string in order to list all channels
 	void 									listChannels(std::map<User, std::string>* resp, Message* msg, std::string channels);
-	void									sendInfoToNewJoin(Message& msg, const Channel* channel, std::map<User, std::string>* resp);
+	void									sendInfoToNewJoin(Message& msg, Channel* channel, std::map<User, std::string>* resp);
 	void 									whoEveryone(std::map<User, std::string>* resp, Message* msg, const std::string& mask);
-	void 									whoChannel(std::map<User, std::string>* resp, Message* msg, const Channel& channel, int priv);
+	void 									whoChannel(std::map<User, std::string>* resp, Message* msg, Channel& channel, int priv);
 	void 									whoOneParam(std::map<User, std::string>* resp, Message* msg);
 	void 									whoTwoParam(std::map<User, std::string>* resp, Message* msg);
 	void									modeReturnFlags(std::map<User, std::string> *resp, Message &msg);
