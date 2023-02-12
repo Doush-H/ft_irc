@@ -28,35 +28,44 @@ private:
 	int									_modes;
 	size_t								_count;
 	//mthreading
+	User								*_botUser;
+	bool								_botEnabled;
+	bool								_botExit;
 	std::map<std::string, privilege>	_userHistory;
 	pthread_mutex_t						_userMutex;
+	pthread_mutex_t						_exitMutex;
 	pthread_t							_botThread;
 public:
 	Channel(std::string name, int modes);
 	~Channel();
     //string getter setters
-	const std::string&							getName() const;
-	const std::string&							getChannelKey() const;
-	void										setChannelKey(const std::string &key);
-	const std::string&							getTopic() const;
-	void										setTopic(const std::string &key);
+	const std::string&					getName() const;
+	const std::string&					getChannelKey() const;
+	void								setChannelKey(const std::string &key);
+	const std::string&					getTopic() const;
+	void								setTopic(const std::string &key);
     //user getter setters
 	// all user functions will have to be protected with a mutex
-	size_t										countUsers() const;
-	int											findUser(const User &user);
-	void										setPrivilege(const User &user, privilege priv);
-	void										removeUser(const User &user);
-	void										addUser(User &user, privilege privilege);
+	size_t								countUsers() const;
+	int									findUser(const User &user);
+	void								setPrivilege(const User &user, privilege priv);
+	void								removeUser(const User &user);
+	void								addUser(User &user, privilege privilege);
 	//
-	bool										checkModes(int modes) const;
-	void										setModes(int modes);
-	void										removeModes(int modes);
+	bool								checkModes(int modes) const;
+	void								setModes(int modes);
+	void								removeModes(int modes);
 	// needs to be manually protected against data race
-	pthread_mutex_t								*getUserMutex();
-	std::map<const User *, privilege>&			getUsersMap();
+	pthread_mutex_t						*getUserMutex();
+	pthread_mutex_t						*getExitMutex();
+	std::map<const User *, privilege>&	getUsersMap();
 	//
 	//mthreading
-	void										generateChannelBot();
+	void								toggleBotEnabled();
+	bool								getBotEnabled() const;
+	void								toggleBotExit();
+	bool								getBotExit();
+	void								generateChannelBot();
 };
 
 

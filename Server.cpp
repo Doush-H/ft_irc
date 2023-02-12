@@ -281,7 +281,7 @@ void Server::removeUser(int fd) {
 void Server::removeUserFromChannels(const User& user) {
 	std::map<std::string, Channel>::iterator it = _channels.begin();
 	while (it != _channels.end()) {
-		std::map<const User*, privilege>::const_iterator userIt = it->second.getUsersMap().find(&user);
+		std::map<const User*, privilege>::iterator userIt = it->second.getUsersMap().find(&user);
 		if (userIt != it->second.getUsersMap().end())
 			it->second.removeUser(user);
 		it++;

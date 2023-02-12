@@ -50,12 +50,22 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				if (params.size() == 2 && chan->second.checkModes(KEY_PROTECTED) && chan->second.getChannelKey() == key) {	//if key is required and the correct key was provided accept the person
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
 					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
+					if (chan->second.countUsers() >= 5 && !chan->second.getBotEnabled()) {
+						chan->second.toggleBotEnabled();
+						chan->second.generateChannelBot();
+					}
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				} else if (chan->second.checkModes(KEY_PROTECTED) && (params.size() == 1 || chan->second.getChannelKey() != key)) {	//else if key not provided or key not correct
 					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
 				} else {	//if no key then join the channel directly
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin);
 					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
+					if (chan->second.countUsers() >= 5 && !chan->second.getBotEnabled()) {
+						std::string botJoin = ":channelBot!channelBot@127.0.0.1 JOIN :" + *it;
+						chan->second.toggleBotEnabled();
+						chan->second.generateChannelBot();
+						sendToChannel(&resp, _channels.find(*it)->second, botJoin);
+					}
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				}
 			}
@@ -84,6 +94,7 @@ void Server::sendInfoToNewJoin(Message& msg, Channel* channel, std::map<User, st
 	
 	respString.append(channel->getName());
 	respString.append(" :");
+	pthread_mutex_lock(channel->getUserMutex());
 	const std::map<const User *, privilege>& users = channel->getUsersMap();
 	std::map<const User *, privilege>::const_iterator it = users.begin();
 	while (it != users.end()) {
@@ -98,6 +109,7 @@ void Server::sendInfoToNewJoin(Message& msg, Channel* channel, std::map<User, st
 		if (it != users.end()) // CHECK IF LAST ONE, DON'T add space if the last one
 			respString.append(" ");
 	}
+	pthread_mutex_unlock(channel->getUserMutex());
 	respString.append("\r\n" SERV_PREFIX "366 " + msg.getSenderUser().getNick() + " " + channel->getName() + " :End of /NAMES list");
 	addResponse(resp, msg.getSenderUser(), respString);
 }
@@ -208,6 +220,9 @@ void	Server::kickComment(std::map<User, std::string>* resp, Message msg, Channel
 
 	sendToChannel(resp, chan, ":" + msg.getSenderUser().getNick() + "!" \
 		+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " KICK " + chanName + " " + msgParams.front() + " :" + msgParams.back());
+	if (chan.countUsers() <= 2 && chan.getBotEnabled()) {
+		chan.toggleBotEnabled();
+	}
 	chan.removeUser(rm);
 }
 

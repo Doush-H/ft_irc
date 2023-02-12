@@ -1,12 +1,17 @@
 #include "Channel.hpp"
 #include "User.hpp"
 
-Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes), _count(1) {
+Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes), _count(0), _botUser(NULL), _botEnabled(false), _botExit(false) {
+
 	pthread_mutex_init(&_userMutex, NULL);
+	pthread_mutex_init(&_exitMutex, NULL);
 }
 
 Channel::~Channel() {
+	if (_botUser)
+		delete _botUser;
 	pthread_mutex_destroy(&_userMutex);
+	pthread_mutex_destroy(&_exitMutex);
 }
 
 const std::string	&Channel::getName() const
@@ -110,23 +115,65 @@ pthread_mutex_t	*Channel::getUserMutex() {
 	return (&_userMutex);
 }
 
+pthread_mutex_t	*Channel::getExitMutex() {
+	return (&_exitMutex);
+}
+
 #include <iostream>
 
 void	*threadStart(void *data)
 {
 	Channel	*chan = static_cast <Channel *> (data);
 	pthread_mutex_t	*userMutex = chan->getUserMutex();
+	// pthread_mutex_t	*exitMutex = chan->getExitMutex();
+	std::cout << "this happens" << std::endl;
 	while (1) {
+		if (chan->getBotExit()) {
+			chan->toggleBotExit();
+			break ;
+		}
 		sleep (1);
 		pthread_mutex_lock(userMutex);
-		if (chan->countUsers() == 3)
+		if (chan->countUsers() == 5)
 			std::cout << "theres 3 dudes" << std::endl;
+		else
+			std::cout << "there aint" << std::endl;
 		pthread_mutex_unlock(userMutex);
 	}
-	return (NULL);
+	pthread_exit(NULL);
+}
+
+void	Channel::toggleBotEnabled() {
+	_botEnabled = !_botEnabled;
+	if (!_botEnabled) {
+		toggleBotExit();
+	}
+}
+
+bool	Channel::getBotEnabled() const {
+	return (_botEnabled);
 }
 
 void	Channel::generateChannelBot()
 {
+	_botUser = new User (-2, "127.0.0.1");
+	_botUser->setNick("channelBot");
+	_botUser->setFullName("Channel Botson");
+	_botUser->setName("channelBot");
+	addUser(*_botUser, OPERATOR);
 	pthread_create(&_botThread, NULL, &threadStart, this);
+	std::cout << "stuck" << std::endl;
+}
+
+bool	Channel::getBotExit() {
+	pthread_mutex_lock(&_exitMutex);
+	bool	ret = _botExit;
+	pthread_mutex_unlock(&_exitMutex);
+	return (ret);
+}
+
+void	Channel::toggleBotExit() {
+	pthread_mutex_lock(&_exitMutex);
+	_botExit = !_botExit;
+	pthread_mutex_unlock(&_exitMutex);
 }
