@@ -134,8 +134,8 @@ void	*threadStart(void *data)
 		}
 		sleep (1);
 		pthread_mutex_lock(userMutex);
-		if (chan->countUsers() == 5)
-			std::cout << "theres 3 dudes" << std::endl;
+		if (chan->countUsers() == 6)
+			std::cout << "theres 6 dudes" << std::endl;
 		else
 			std::cout << "there aint" << std::endl;
 		pthread_mutex_unlock(userMutex);

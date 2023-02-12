@@ -61,10 +61,8 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin);
 					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 					if (chan->second.countUsers() >= 5 && !chan->second.getBotEnabled()) {
-						std::string botJoin = ":channelBot!channelBot@127.0.0.1 JOIN :" + *it;
 						chan->second.toggleBotEnabled();
 						chan->second.generateChannelBot();
-						sendToChannel(&resp, _channels.find(*it)->second, botJoin);
 					}
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				}
@@ -94,7 +92,7 @@ void Server::sendInfoToNewJoin(Message& msg, Channel* channel, std::map<User, st
 	
 	respString.append(channel->getName());
 	respString.append(" :");
-	pthread_mutex_lock(channel->getUserMutex());
+	// pthread_mutex_lock(channel->getUserMutex());
 	const std::map<const User *, privilege>& users = channel->getUsersMap();
 	std::map<const User *, privilege>::const_iterator it = users.begin();
 	while (it != users.end()) {
@@ -109,7 +107,7 @@ void Server::sendInfoToNewJoin(Message& msg, Channel* channel, std::map<User, st
 		if (it != users.end()) // CHECK IF LAST ONE, DON'T add space if the last one
 			respString.append(" ");
 	}
-	pthread_mutex_unlock(channel->getUserMutex());
+	// pthread_mutex_unlock(channel->getUserMutex());
 	respString.append("\r\n" SERV_PREFIX "366 " + msg.getSenderUser().getNick() + " " + channel->getName() + " :End of /NAMES list");
 	addResponse(resp, msg.getSenderUser(), respString);
 }
