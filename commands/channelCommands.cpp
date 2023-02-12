@@ -48,21 +48,35 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 			} else {
 				std::string key = params.back();
 				if (params.size() == 2 && chan->second.checkModes(KEY_PROTECTED) && chan->second.getChannelKey() == key) {	//if key is required and the correct key was provided accept the person
-					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
+					sendToChannel(&resp, chan->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
 					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 					if (chan->second.countUsers() >= 5 && !chan->second.getBotEnabled()) {
+						std::string botHostmask = ":channelBot!channelBot@127.0.0.1";
 						chan->second.toggleBotEnabled();
 						chan->second.generateChannelBot();
+						sendToChannel(&resp, chan->second, botHostmask + " JOIN :" + *it);
+						sendToChannel(&resp, chan->second, botHostmask + " MODE " + *it + " +o channelBot");
 					}
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				} else if (chan->second.checkModes(KEY_PROTECTED) && (params.size() == 1 || chan->second.getChannelKey() != key)) {	//else if key not provided or key not correct
 					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
 				} else {	//if no key then join the channel directly
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin);
-					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
+					
+					privilege	prio = NO_PRIO;
+					if (chan->second.getBotEnabled()) {
+						std::string userHostmask = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() \
+							+ "@" + msg.getSenderUser().getHostmask();
+						prio = chan->second.checkUserHistory(msg.getSenderUser());
+						sendToChannel(&resp, chan->second,  + " MODE " + *it + " +o " + msg.getSenderUser().getNick());
+					}
+					chan->second.addUser(msg.getSenderUser(), prio);	//if 5 users spawn bot
 					if (chan->second.countUsers() >= 5 && !chan->second.getBotEnabled()) {
+						std::string botHostmask = ":channelBot!channelBot@127.0.0.1";
 						chan->second.toggleBotEnabled();
 						chan->second.generateChannelBot();
+						sendToChannel(&resp, chan->second, botHostmask + " JOIN :" + *it);
+						sendToChannel(&resp, chan->second, botHostmask + " MODE " + *it + " +o channelBot");
 					}
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				}
@@ -208,6 +222,10 @@ void	Server::kickNoComment(std::map<User, std::string>* resp, Message msg, Chann
 
 	sendToChannel(resp, chan, ":" + msg.getSenderUser().getNick() + "!" \
 		+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " KICK " + msgParams.front() + " " + msgParams.back());
+	if (chan.countUsers() < 5 && chan.getBotEnabled()) {
+		chan.toggleBotEnabled();
+		chan.toggleBotExit();
+	}
 	chan.removeUser(rm);
 }
 
@@ -219,8 +237,9 @@ void	Server::kickComment(std::map<User, std::string>* resp, Message msg, Channel
 
 	sendToChannel(resp, chan, ":" + msg.getSenderUser().getNick() + "!" \
 		+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " KICK " + chanName + " " + msgParams.front() + " :" + msgParams.back());
-	if (chan.countUsers() <= 2 && chan.getBotEnabled()) {
+	if (chan.countUsers() < 5 && chan.getBotEnabled()) {
 		chan.toggleBotEnabled();
+		chan.toggleBotExit();
 	}
 	chan.removeUser(rm);
 }

@@ -44,7 +44,6 @@ std::map<User, std::string> Server::quitCommand(Message& msg) {
 		}
 		addResponse(&resp, msg.getSenderUser(), quitMessage);
 	}
-
 	return resp;
 }
 

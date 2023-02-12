@@ -28,3 +28,7 @@ Simple Irc server (in progress)
   - JOIN
   - TOPIC
   - Sending the channel users and the channel topic when someone joins the channel
+
+- ### Bot:
+  - Now storing hostmasks
+  - Then I have to reinvite users based on their information

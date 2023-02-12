@@ -66,6 +66,7 @@ public:
 	void								toggleBotExit();
 	bool								getBotExit();
 	void								generateChannelBot();
+	privilege							checkUserHistory(User &user);
 };
 
 

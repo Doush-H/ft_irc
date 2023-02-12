@@ -124,21 +124,18 @@ pthread_mutex_t	*Channel::getExitMutex() {
 void	*threadStart(void *data)
 {
 	Channel	*chan = static_cast <Channel *> (data);
-	pthread_mutex_t	*userMutex = chan->getUserMutex();
-	// pthread_mutex_t	*exitMutex = chan->getExitMutex();
-	std::cout << "this happens" << std::endl;
+	int	timer = 60;
 	while (1) {
-		if (chan->getBotExit()) {
+		if (timer <= 0) {
 			chan->toggleBotExit();
+			chan->toggleBotEnabled();
 			break ;
 		}
 		sleep (1);
-		pthread_mutex_lock(userMutex);
-		if (chan->countUsers() == 6)
-			std::cout << "theres 6 dudes" << std::endl;
-		else
-			std::cout << "there aint" << std::endl;
-		pthread_mutex_unlock(userMutex);
+		timer --;
+		if (!chan->getBotExit())
+			timer = 60;
+		std::cout << timer << std::endl;
 	}
 	pthread_exit(NULL);
 }
@@ -160,6 +157,11 @@ void	Channel::generateChannelBot()
 	_botUser->setNick("channelBot");
 	_botUser->setFullName("Channel Botson");
 	_botUser->setName("channelBot");
+	std::map<const User *, privilege>::iterator	it = _users.begin();
+	for (; it != _users.end(); it++) {
+		std::string	str = it->first->getNick() + "!" + it->first->getName() + "@" + it->first->getHostmask();
+		_userHistory.insert(std::pair<std::string, privilege> (str, it->second));
+	}
 	addUser(*_botUser, OPERATOR);
 	pthread_create(&_botThread, NULL, &threadStart, this);
 }
@@ -175,4 +177,14 @@ void	Channel::toggleBotExit() {
 	pthread_mutex_lock(&_exitMutex);
 	_botExit = !_botExit;
 	pthread_mutex_unlock(&_exitMutex);
+}
+
+privilege	Channel::checkUserHistory(User &user) {
+	std::map<std::string, privilege>::iterator	it = _userHistory.begin();
+	for (; it != _userHistory.end(); it++) {
+		if (user.getNick() + "!" + user.getName() + "@" + user.getHostmask() == it->first) {
+			return (it->second);
+		}
+	}
+	return (NO_PRIO);
 }
