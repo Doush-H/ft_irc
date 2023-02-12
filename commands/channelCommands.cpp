@@ -136,6 +136,7 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 				addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "442 " + msg.getSenderUser().getNick() + " " + *it + " :You're not on that channel");
 			} else {
 				if (msgParams.size() == 1) {
+					
 					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 						+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " PART " + *it);
 						// inform everyone in the channel (including the user that's leaving) that the user is leaving the channel

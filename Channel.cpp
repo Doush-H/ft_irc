@@ -76,7 +76,7 @@ int	Channel::findUser(const User &user)
 
 void	Channel::removeUser(const User &user)
 {
-	pthread_mutex_lock(&_userMutex);
+	pthread_mutex_trylock(&_userMutex);
 	_users.erase(&user);
 	_count--;
 	pthread_mutex_unlock(&_userMutex);
@@ -84,7 +84,7 @@ void	Channel::removeUser(const User &user)
 
 void	Channel::addUser(User &user, privilege priv)
 {
-	pthread_mutex_lock(&_userMutex);
+	pthread_mutex_trylock(&_userMutex);
 	if (_users.find(&user) == _users.end())
 		_users.insert(std::pair<const User *, privilege>(&user, priv));
 	_count++;
@@ -156,13 +156,12 @@ bool	Channel::getBotEnabled() const {
 
 void	Channel::generateChannelBot()
 {
-	_botUser = new User (-2, "127.0.0.1");
+	_botUser = new User (-1, "127.0.0.1");
 	_botUser->setNick("channelBot");
 	_botUser->setFullName("Channel Botson");
 	_botUser->setName("channelBot");
 	addUser(*_botUser, OPERATOR);
 	pthread_create(&_botThread, NULL, &threadStart, this);
-	std::cout << "stuck" << std::endl;
 }
 
 bool	Channel::getBotExit() {
