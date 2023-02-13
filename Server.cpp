@@ -89,9 +89,8 @@ void Server::start() {
 		// Check for bots to despawn
 		std::map<std::string, Channel>::iterator it = _channels.begin();
 		for (; it != _channels.end(); it++) {
-			ChannelBot	channelBot = it->second.channelBot;
-			if (channelBot.getDespawnBot()) {
-				it->second.removeUser(channelBot.getBotUser());
+			if (it->second.channelBot.getDespawnBot()) {
+				it->second.removeUser(it->second.channelBot.getBotUser());
 				std::string	msg = ":channelBot!channelBot@127.0.0.1 PART " + it->second.getName();
 				std::map<User, std::string>	resp;
 				std::map<const User *, privilege> users = it->second.getUsersMap();
