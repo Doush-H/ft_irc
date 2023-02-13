@@ -6,14 +6,15 @@ std::list<std::string> getRecieversFromInputList(std::string str);
 // -------------------------------- JOIN --------------------------------
 
 void	Server::spawnBot(std::map<User, std::string> *resp, Channel &chan, std::string chanName) {
-	if (chan.countUsers() >= 5 && !chan.channelBot) {
+	if (chan.countUsers() >= 5 && !chan.channelBot.getIsReal()) {
 		std::string botHostmask = ":channelBot!channelBot@127.0.0.1";
-		chan.channelBot = new ChannelBot(chan);
-		chan.channelBot->setBotEnabled(true);
+		chan.channelBot.beginThread(chan);
+		chan.channelBot.setBotEnabled(true);
+		chan.channelBot.setIsReal(true);
 		sendToChannel(resp, chan, botHostmask + " JOIN :" + chanName);
 		sendToChannel(resp, chan, botHostmask + " MODE " + chanName + " +o channelBot");
-	} else if (chan.countUsers() > 5 && chan.channelBot) {
-		chan.channelBot->setBotEnabled(true);
+	} else if (chan.countUsers() > 5 && chan.channelBot.getIsReal()) {
+		chan.channelBot.setBotEnabled(true);
 	}
 }
 
@@ -35,10 +36,10 @@ static std::string	flagGlossary(privilege priv)
 privilege	Server::checkPrivilege(Message& msg, Channel &chan, std::map<User, std::string>* resp)
 {
 	privilege	prio = NO_PRIO;
-	if (chan.channelBot) {
+	if (chan.channelBot.getIsReal()) {
 		std::string userHostmask = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() \
 			+ "@" + msg.getSenderUser().getHostmask();
-		prio = chan.channelBot->checkUserHistory(msg.getSenderUser());
+		prio = chan.channelBot.checkUserHistory(msg.getSenderUser());
 		std::string	s = flagGlossary(prio);
 		sendToChannel(resp, chan, userHostmask + " MODE " + chan.getName() + " " + s + msg.getSenderUser().getNick());
 	}
@@ -175,16 +176,16 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 						+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " PART " + *it);
 						// inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
-					if (chan->second.countUsers() <= 5 && chan->second.channelBot) {
-						chan->second.channelBot->setBotEnabled(false);
+					if (chan->second.countUsers() <= 5 && chan->second.channelBot.getIsReal()) {
+						chan->second.channelBot.setBotEnabled(false);
 					}
 				} else {
 					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 						+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " PART " + *it + " :" + msgParams.back());
 						// inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
-					if (chan->second.countUsers() <= 5 && chan->second.channelBot) {
-						chan->second.channelBot->setBotEnabled(false);
+					if (chan->second.countUsers() <= 5 && chan->second.channelBot.getIsReal()) {
+						chan->second.channelBot.setBotEnabled(false);
 					}
 				}
 			}

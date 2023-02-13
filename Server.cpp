@@ -89,19 +89,23 @@ void Server::start() {
 		// Check for bots to despawn
 		std::map<std::string, Channel>::iterator it = _channels.begin();
 		for (; it != _channels.end(); it++) {
-			ChannelBot	*channelBot = it->second.channelBot;
-			if (channelBot && channelBot->getDespawnBot()) {
-				it->second.removeUser(*channelBot->getBotUser());
-				delete channelBot;
-				it->second.channelBot = NULL;
+			ChannelBot	channelBot = it->second.channelBot;
+			if (channelBot.getDespawnBot()) {
+				it->second.removeUser(channelBot.getBotUser());
 				std::string	msg = ":channelBot!channelBot@127.0.0.1 PART " + it->second.getName();
 				std::map<User, std::string>	resp;
 				std::map<const User *, privilege> users = it->second.getUsersMap();
-				std::map<const User *, privilege>::const_iterator it = users.begin();
-
-				while (it != users.end()) {
-					addResponse(&resp, *(it->first), msg);
-					it++;
+				std::map<const User *, privilege>::const_iterator it2 = users.begin();
+				it->second.channelBot.setDespawnBot(false);
+				while (it2 != users.end()) {
+					addResponse(&resp, *(it2->first), msg);
+					it2++;
+				}
+				if (!it->second.countUsers()) {
+					it = _channels.erase(it);
+					refreshList(&resp);
+					sendResponse(&resp);
+					break ;
 				}
 				refreshList(&resp);
 				sendResponse(&resp);
@@ -299,8 +303,11 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 void Server::sendResponse(std::map<User, std::string>* responses) {
 	std::map<User, std::string>::iterator it = responses->begin();
 	while (it != responses->end()) {
+		if (it->first.getUserFd() == -2) {
+			it++;
+			continue ;
+		}
 		it->second.append("\r\n");
-
 		if (send(it->first.getUserFd(), it->second.c_str(), it->second.length(), 0) == -1)
 			throw SendingTheMsgFailedException();
 		std::cout << "|" << it->second << "| was successfully sent to " + it->first.getNick() + "\n" << std::endl;

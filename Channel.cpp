@@ -2,9 +2,24 @@
 #include "Channel.hpp"
 #include "ChannelBot.hpp"
 
-Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes), channelBot(NULL) {}
+Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes) {}
 
 Channel::~Channel() {}
+
+Channel::Channel(const Channel &copy) {
+	*this = copy;
+}
+
+Channel	&Channel::operator = (const Channel &copy) {
+	if (this != &copy) {
+		_name = copy.getName();
+		_channel_key = copy.getChannelKey();
+		_topic = copy.getTopic();
+		_users = copy.getUsersMap();
+		_modes = copy.getModes();
+	}
+	return *this;
+}
 
 const std::string	&Channel::getName() const
 {
@@ -83,4 +98,8 @@ void	Channel::removeModes(int modes)
 
 const std::map<const User *, privilege>& Channel::getUsersMap() const {
 	return _users;
+}
+
+int	Channel::getModes() const {
+	return _modes;
 }
