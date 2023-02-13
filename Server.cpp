@@ -108,8 +108,9 @@ void Server::start() {
 			}
 		}
 
+
 		// Waiting for some activity on any of the user fds
-		pollReturn = poll(_userPoll, _activePoll, -1);
+		pollReturn = poll(_userPoll, _activePoll, 900);
 
 		// Check if poll failed
 		if (pollReturn == -1)
@@ -139,13 +140,16 @@ void Server::start() {
 
 void Server::setupSocket() {
 	// Create a socket
-	_listeningSocket = socket(PF_INET, SOCK_STREAM, getprotobyname("tcp")->p_proto);
+	std::cout << "NOPE" << std::endl;
+	_listeningSocket = socket(PF_INET, SOCK_STREAM, 0);
 	int optVal = 1;
 	int optLen = sizeof(optVal);
-	if (setsockopt(_listeningSocket, SOL_SOCKET,  SO_REUSEADDR, (const char*)&optVal, optLen) == -1) {
+
+	if (setsockopt(_listeningSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&optVal, optLen) == -1 || setsockopt(_listeningSocket, SOL_SOCKET, SO_NOSIGPIPE, (const char*)&optVal, optLen) == -1) {
 		std::cout << "setsockopt error" << std::endl;
 		exit(-1);
 	}
+
 	fcntl(_listeningSocket, F_SETFL, O_NONBLOCK);
 	if (_listeningSocket == -1) {
 		throw FailedToCreateSocketException();
@@ -155,6 +159,7 @@ void Server::setupSocket() {
 	sockaddr_in hint;
 	hint.sin_family = AF_INET;
 	hint.sin_port = htons(_port);
+
 	inet_pton(AF_INET, "0.0.0.0", &hint.sin_addr);
 	if (bind(_listeningSocket, (sockaddr *)&hint, sizeof(hint)) == -1) {
 		throw FailedToBindSocket();
@@ -293,13 +298,13 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 
 void Server::sendResponse(std::map<User, std::string>* responses) {
 	std::map<User, std::string>::iterator it = responses->begin();
-	ssize_t sendBytes;
 	while (it != responses->end()) {
 		it->second.append("\r\n");
-		sendBytes = send(it->first.getUserFd(), it->second.c_str(), it->second.length(), 0);
-		if (sendBytes == -1)
+
+		if (send(it->first.getUserFd(), it->second.c_str(), it->second.length(), 0) == -1)
 			throw SendingTheMsgFailedException();
 		std::cout << "|" << it->second << "| was successfully sent to " + it->first.getNick() + "\n" << std::endl;
+
 		if (it->first.isDisconnect()) {
 			removeUser(it->first.getUserFd());
 			std::cout << it->first.getNick() << " QUIT THE SERVER" << std::endl;
