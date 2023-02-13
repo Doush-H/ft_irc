@@ -20,7 +20,7 @@ void	Server::spawnBot(std::map<User, std::string> *resp, Channel &chan, std::str
 privilege	Server::checkPrivilege(Message& msg, Channel &chan, std::map<User, std::string>* resp)
 {
 	privilege	prio = NO_PRIO;
-	if (chan.channelBot && chan.channelBot->getBotEnabled()) {
+	if (chan.channelBot) {
 		std::string userHostmask = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() \
 			+ "@" + msg.getSenderUser().getHostmask();
 		prio = chan.channelBot->checkUserHistory(msg.getSenderUser());
@@ -75,6 +75,7 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				std::string key = params.back();
 				if (params.size() == 2 && chan->second.checkModes(KEY_PROTECTED) && chan->second.getChannelKey() == key) {	//if key is required and the correct key was provided accept the person
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
+					std::cout << "outside" << std::endl;
 					chan->second.addUser(msg.getSenderUser(), checkPrivilege(msg, chan->second, &resp));
 					spawnBot(&resp, chan->second, *it);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);

@@ -103,6 +103,7 @@ void Server::start() {
 					addResponse(&resp, *(it->first), msg);
 					it++;
 				}
+				refreshList(&resp);
 				sendResponse(&resp);
 			}
 		}
