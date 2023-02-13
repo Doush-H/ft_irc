@@ -1,6 +1,6 @@
 NAME := ircserv
 CPP := c++
-CPPFLAGS := -std=c++98 -Wall -Wextra -Werror
+CPPFLAGS := -std=c++98 -Wall -Wextra -Werror -pthread
 # CPPFLAGS := -std=c++98
 IFLAGS := -I .
 
