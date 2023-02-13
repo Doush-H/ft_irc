@@ -1,7 +1,33 @@
 #include "Server.hpp"
+#include "ChannelBot.hpp"
 
 std::list<std::string> getRecieversFromInputList(std::string str);
+
 // -------------------------------- JOIN --------------------------------
+
+void	Server::spawnBot(std::map<User, std::string> *resp, Channel &chan, std::string chanName) {
+	if (chan.countUsers() >= 5 && !chan.channelBot) {
+		std::string botHostmask = ":channelBot!channelBot@127.0.0.1";
+		chan.channelBot = new ChannelBot(chan);
+		chan.channelBot->setBotEnabled(true);
+		sendToChannel(resp, chan, botHostmask + " JOIN :" + chanName);
+		sendToChannel(resp, chan, botHostmask + " MODE " + chanName + " +o channelBot");
+	} else if (chan.countUsers() > 5 && chan.channelBot) {
+		chan.channelBot->setBotEnabled(true);
+	}
+}
+
+privilege	Server::checkPrivilege(Message& msg, Channel &chan, std::map<User, std::string>* resp)
+{
+	privilege	prio = NO_PRIO;
+	if (chan.channelBot && chan.channelBot->getBotEnabled()) {
+		std::string userHostmask = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() \
+			+ "@" + msg.getSenderUser().getHostmask();
+		prio = chan.channelBot->checkUserHistory(msg.getSenderUser());
+		sendToChannel(resp, chan, userHostmask + " MODE " + chan.getName() + " +o " + msg.getSenderUser().getNick());
+	}
+	return (prio);
+}
 
 std::map<User, std::string> Server::joinCommand(Message& msg){
 	std::map<User, std::string> resp;
@@ -49,13 +75,15 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				std::string key = params.back();
 				if (params.size() == 2 && chan->second.checkModes(KEY_PROTECTED) && chan->second.getChannelKey() == key) {	//if key is required and the correct key was provided accept the person
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
-					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
+					chan->second.addUser(msg.getSenderUser(), checkPrivilege(msg, chan->second, &resp));
+					spawnBot(&resp, chan->second, *it);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				} else if (chan->second.checkModes(KEY_PROTECTED) && (params.size() == 1 || chan->second.getChannelKey() != key)) {	//else if key not provided or key not correct
 					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
 				} else {	//if no key then join the channel directly
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin);
-					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
+					chan->second.addUser(msg.getSenderUser(), checkPrivilege(msg, chan->second, &resp));
+					spawnBot(&resp, chan->second, *it);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 				}
 			}
@@ -130,11 +158,17 @@ std::map<User, std::string>	Server::partCommand(Message& msg)
 						+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " PART " + *it);
 						// inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
+					if (chan->second.countUsers() <= 5 && chan->second.channelBot) {
+						chan->second.channelBot->setBotEnabled(false);
+					}
 				} else {
 					sendToChannel(&resp, chan->second, ":" + msg.getSenderUser().getNick() + "!" \
 						+ msg.getSenderUser().getName() + "@" + msg.getSenderUser().getHostmask() + " PART " + *it + " :" + msgParams.back());
 						// inform everyone in the channel (including the user that's leaving) that the user is leaving the channel
 					chan->second.removeUser(msg.getSenderUser());
+					if (chan->second.countUsers() <= 5 && chan->second.channelBot) {
+						chan->second.channelBot->setBotEnabled(false);
+					}
 				}
 			}
 			if (chan->second.countUsers() == 0)

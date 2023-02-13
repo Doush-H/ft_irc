@@ -18,6 +18,7 @@
 # include "Channel.hpp"
 # include <cstring>
 # include <sstream>
+# include <pthread.h>
 
 # include <sys/types.h>
 # include <netinet/in.h>
@@ -35,9 +36,7 @@ private:
 	bool					_stop;					// Tells the server to stop if set true
 	int 					_listeningSocket; 		// Fd of the socket that was creating, it's used for accepting new connection
 	std::map<int, User>		_users;					// A map with fds as keys and User that the fd belongs to as the value of the map
-	// may change this
-	std::map<std::string, Channel>	_channels;	// Private channels are displayed in the private section of the client list
-	// 
+	std::map<std::string, Channel>	_channels;		// Private channels are displayed in the private section of the client list
 
 public:
 	// -------------------- Exceptions ---------------------
@@ -204,6 +203,8 @@ class SendingTheMsgFailedException : public std::exception {
 	void									modeChangeChannelUser(std::map<User, std::string> *resp, Message &msg);
 	void 									kickNoComment(std::map<User, std::string>* resp, Message msg, Channel &chan, User &rm);
 	void 									kickComment(std::map<User, std::string>* resp, Message msg, Channel &chan, User &rm);
+	void									spawnBot(std::map<User, std::string> *resp, Channel &chan, std::string chanName);
+	privilege								checkPrivilege(Message& msg, Channel &chan, std::map<User, std::string>* resp);
 
 	//If no errors occurred return true, else returns false
 	bool						 			privmsgToUserCommand(Message* msg, std::map<User, std::string>* resp, const std::string& userNick);

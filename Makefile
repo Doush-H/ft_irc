@@ -6,8 +6,8 @@ IFLAGS := -I .
 
 VPATH := commands
 
-SRC :=	Message.cpp Server.cpp User.cpp main.cpp simpleCommands.cpp who.cpp \
-		channelCommands.cpp privmsg.cpp login.cpp mode.cpp Channel.cpp helperFunctions.cpp
+SRC :=	Message.cpp Server.cpp User.cpp main.cpp simpleCommands.cpp who.cpp channelCommands.cpp \
+		privmsg.cpp login.cpp mode.cpp Channel.cpp helperFunctions.cpp ChannelBot.cpp
 OBJ := $(addprefix _obj/,$(notdir $(SRC:.cpp=.o)))
 
 DEPS := Message.hpp Server.hpp User.hpp Channel.hpp

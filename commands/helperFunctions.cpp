@@ -16,6 +16,10 @@ void Server::sendToChannel(std::map<User, std::string>* resp, const Channel& cha
 	std::map<const User *, privilege>::const_iterator it = users.begin();
 
 	while (it != users.end()) {
+		if (it->first->getUserFd() == -1) {
+			it++;
+			continue ;
+		}
 		addResponse(resp, *(it->first), message);
 		it++;
 	}
@@ -29,6 +33,10 @@ void Server::sendMsgToChannel(std::map<User, std::string>* resp, const Channel& 
 
 
 	while (it != users.end()) {
+		if (it->first->getUserFd() == -1) {
+			it++;
+			continue ;
+		}
 		if (it->first->getNick() != msg->getSenderUser().getNick())
 			addResponse(resp, *(it->first), senderPrefix + " PRIVMSG " + channel.getName() + " :" + senderMessage);	
 		it++;

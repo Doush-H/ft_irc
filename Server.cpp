@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "ChannelBot.hpp"
 
 // ------------------ Getters and Setters ------------------
 
@@ -42,9 +43,30 @@ void Server::setActivePoll(nfds_t pollSize) {
 	_activePoll = pollSize;
 }
 
+// static void	*threadStart(void *data) {
+// 	std::map<std::string, Channel> *channels = static_cast <std::map<std::string, Channel> *> (data);
+// 	int	timer = 60;
+// 	while (1) {
+// 		std::map<std::string, Channel>::const_iterator	it = channels->begin();
+// 		for (; it != channels->end(); it++) {
+// 			pthread_mutex_lock(&it->second.botMutex);
+// 		}
+// 		// if (timer <= 0) {
+// 		// 	break ;
+// 		// }
+// 		// sleep (1);
+// 		// timer--;
+// 		// if (chanBot->getBotEnabled())
+// 		// 	timer = 60;
+// 		// std::cout << timer << std::endl;
+// 	}
+// 	pthread_exit(NULL);
+// }
+
 // ---------------------- Constructors ------------------------
 
 Server::Server(char** argv){
+	// pthread_create(&_botManager, NULL, threadStart, &_channels);
 	long port = strtol(argv[1], NULL, 0);
 	if (port < 0 || errno == ERANGE)
 		throw WrongPortNumberException();
@@ -64,6 +86,27 @@ void Server::start() {
 	}
 	int pollReturn;
 	while (!_stop) {
+		// Check for bots to despawn
+		std::map<std::string, Channel>::iterator it = _channels.begin();
+		for (; it != _channels.end(); it++) {
+			ChannelBot	*channelBot = it->second.channelBot;
+			if (channelBot && channelBot->getDespawnBot()) {
+				it->second.removeUser(*channelBot->getBotUser());
+				delete channelBot;
+				it->second.channelBot = NULL;
+				std::string	msg = ":channelBot!channelBot@127.0.0.1 PART " + it->second.getName();
+				std::map<User, std::string>	resp;
+				std::map<const User *, privilege> users = it->second.getUsersMap();
+				std::map<const User *, privilege>::const_iterator it = users.begin();
+
+				while (it != users.end()) {
+					addResponse(&resp, *(it->first), msg);
+					it++;
+				}
+				sendResponse(&resp);
+			}
+		}
+
 		// Waiting for some activity on any of the user fds
 		pollReturn = poll(_userPoll, _activePoll, -1);
 

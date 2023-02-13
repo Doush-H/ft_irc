@@ -1,7 +1,8 @@
-#include "Channel.hpp"
 #include "User.hpp"
+#include "Channel.hpp"
+#include "ChannelBot.hpp"
 
-Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes) {}
+Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes), channelBot(NULL) {}
 
 Channel::~Channel() {}
 
