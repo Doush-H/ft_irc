@@ -15,8 +15,8 @@ static void	*threadStart(void *data) {
 		timer--;
 		if (chanBot->getBotEnabled())
 			timer = 60;
-		std::cout << timer << std::endl;
 	}
+	std::cout << "bot disconnecting" << std::endl;
 	chanBot->setDespawnBot(true);
 	pthread_exit(NULL);
 }

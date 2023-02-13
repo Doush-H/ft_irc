@@ -17,6 +17,21 @@ void	Server::spawnBot(std::map<User, std::string> *resp, Channel &chan, std::str
 	}
 }
 
+static std::string	flagGlossary(privilege priv)
+{
+	std::cout << priv << std::endl;
+	switch (priv)
+	{
+	case OPERATOR:	//user modes
+		return ("+o ");
+	case VOICE_PRIO:
+		return ("+v ");
+	default:
+		break;
+	}
+	return ("");
+}
+
 privilege	Server::checkPrivilege(Message& msg, Channel &chan, std::map<User, std::string>* resp)
 {
 	privilege	prio = NO_PRIO;
@@ -24,7 +39,8 @@ privilege	Server::checkPrivilege(Message& msg, Channel &chan, std::map<User, std
 		std::string userHostmask = ":" + msg.getSenderUser().getNick() + "!" + msg.getSenderUser().getName() \
 			+ "@" + msg.getSenderUser().getHostmask();
 		prio = chan.channelBot->checkUserHistory(msg.getSenderUser());
-		sendToChannel(resp, chan, userHostmask + " MODE " + chan.getName() + " +o " + msg.getSenderUser().getNick());
+		std::string	s = flagGlossary(prio);
+		sendToChannel(resp, chan, userHostmask + " MODE " + chan.getName() + " " + s + msg.getSenderUser().getNick());
 	}
 	return (prio);
 }
