@@ -4,11 +4,11 @@ User::User() {
 	_allowConnection = false;
 	_isRegistered = false;
 	_disconnect = false;
-	_userFd = -2;
+	_userFd = -1;
 	_hostmask = "127.0.0.1";
-	_nick = "channelBot";
-	_name = "channelBot";
-	_fullName = "Channel Botson";
+	_nick = "*";
+	_name = "*";
+	_fullName = "*";
 }
 
 User::User(int fd, std::string hostmask) {

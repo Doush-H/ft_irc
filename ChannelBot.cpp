@@ -55,3 +55,7 @@ void	ChannelBot::setIsActive(bool active) {
 bool	ChannelBot::getIsActive() const {
 	return _isActive;
 }
+
+struct timeval& 	ChannelBot::getTimestamp() {
+	return _timestamp;
+}

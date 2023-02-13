@@ -86,29 +86,32 @@ void Server::start() {
 	}
 	int pollReturn;
 	while (!_stop) {
-		// Check for bots to despawn
 		std::map<std::string, Channel>::iterator it = _channels.begin();
 		for (; it != _channels.end(); it++) {
-			if (it->second.channelBot.getDespawnBot()) {
-				it->second.removeUser(it->second.channelBot.getBotUser());
-				std::string	msg = ":channelBot!channelBot@127.0.0.1 PART " + it->second.getName();
-				std::map<User, std::string>	resp;
-				std::map<const User *, privilege> users = it->second.getUsersMap();
-				std::map<const User *, privilege>::const_iterator it2 = users.begin();
-				it->second.channelBot.setDespawnBot(false);
-				while (it2 != users.end()) {
-					addResponse(&resp, *(it2->first), msg);
-					it2++;
-				}
-				if (!it->second.countUsers()) {
-					it = _channels.erase(it);
-					refreshList(&resp);
-					sendResponse(&resp);
-					break ;
-				}
-				refreshList(&resp);
-				sendResponse(&resp);
-			}
+			// check for timestamps, add bots, remove bots
+
+
+
+			// if (it->second.channelBot.getDespawnBot()) {
+			// 	it->second.removeUser(it->second.channelBot.getBotUser());
+			// 	std::string	msg = ":channelBot!channelBot@127.0.0.1 PART " + it->second.getName();
+			// 	std::map<User, std::string>	resp;
+			// 	std::map<const User *, privilege> users = it->second.getUsersMap();
+			// 	std::map<const User *, privilege>::const_iterator it2 = users.begin();
+			// 	it->second.channelBot.setDespawnBot(false);
+			// 	while (it2 != users.end()) {
+			// 		addResponse(&resp, *(it2->first), msg);
+			// 		it2++;
+			// 	}
+			// 	if (!it->second.countUsers()) {
+			// 		it = _channels.erase(it);
+			// 		refreshList(&resp);
+			// 		sendResponse(&resp);
+			// 		break ;
+			// 	}
+			// 	refreshList(&resp);
+			// 	sendResponse(&resp);
+			// }
 		}
 
 
