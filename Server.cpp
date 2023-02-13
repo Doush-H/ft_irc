@@ -140,7 +140,6 @@ void Server::start() {
 
 void Server::setupSocket() {
 	// Create a socket
-	std::cout << "NOPE" << std::endl;
 	_listeningSocket = socket(PF_INET, SOCK_STREAM, 0);
 	int optVal = 1;
 	int optLen = sizeof(optVal);
