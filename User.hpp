@@ -8,13 +8,14 @@ private:
 	std::string 	_nick;
 	std::string 	_name;
 	std::string 	_fullName;
-	const std::string	_hostmask;
+	std::string		_hostmask;
 	int 			_userFd;
 	bool 			_isRegistered;
 	bool 			_allowConnection;
 	bool			_disconnect;
 
 public:
+	User();
 	User(int fd, std::string hostmask);
 	User(const User& other);
 
@@ -34,6 +35,7 @@ public:
 	void setAllowConnection(bool allowConnection);
 	int getUserFd() const;
 	void setUserFd(int userFd);
+	void setHostmask(std::string str);
 	bool isDisconnect() const;
 	void setDisconnect(bool disconnect);
 

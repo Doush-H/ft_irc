@@ -1,10 +1,22 @@
 #include "User.hpp"
 
-User::User(int fd, std::string hostmask) : _hostmask(hostmask) {
+User::User() {
+	_allowConnection = false;
+	_isRegistered = false;
+	_disconnect = false;
+	_userFd = -1;
+	_hostmask = "";
+	_nick = "*";
+	_name = "*";
+	_fullName = "*";
+}
+
+User::User(int fd, std::string hostmask) {
 	_allowConnection = false;
 	_isRegistered = false;
 	_disconnect = false;
 	_userFd = fd;
+	_hostmask = hostmask;
 	_nick = "*";
 	_name = "*";
 	_fullName = "*";
@@ -93,6 +105,10 @@ int User::getUserFd() const {
 
 void User::setUserFd(int userFd) {
 	User::_userFd = userFd;
+}
+
+void User::setHostmask(std::string str) {
+	User::_hostmask = str;
 }
 
 // ------------------ Methods --------------------

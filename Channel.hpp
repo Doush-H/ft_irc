@@ -5,11 +5,11 @@
 # include <list>
 # include <string>
 
+# include "ChannelBot.hpp"
+# include "enums.hpp"
+
 class	User;
 class	ChannelBot;
-
-enum	privilege { OPERATOR = 1, VOICE_PRIO = 2, NO_PRIO = 3, INVITED = 4 };
-enum	modes { NONE = 0, SECRET = 1, PRIV = 2, MODERATED = 4, INVITE_ONLY = 8, TOPIC_RESTRICTED = 16, KEY_PROTECTED = 32 };
 
 /// @brief Channel class
 /// @param _name name of the channel
@@ -20,16 +20,18 @@ enum	modes { NONE = 0, SECRET = 1, PRIV = 2, MODERATED = 4, INVITE_ONLY = 8, TOP
 class Channel
 {
 private:
-	const std::string					_name;
+	std::string							_name;
 	std::string							_channel_key;
 	std::string							_topic;
 	std::map<const User *, privilege>	_users;
 	int									_modes;
 public:
 	Channel(std::string name, int modes);
+	Channel(const Channel &copy);
+	Channel	&operator = (const Channel &copy);
 	~Channel();
     //string getter setters
-	ChannelBot									*channelBot;
+	ChannelBot									channelBot;
 	const std::string&							getName() const;
 	const std::string&							getChannelKey() const;
 	void										setChannelKey(const std::string &key);
@@ -43,8 +45,10 @@ public:
 	void										addUser(User &user, privilege privilege);
 	bool										checkModes(int modes) const;
 	void										setModes(int modes);
+	int											getModes() const ;
 	void										removeModes(int modes);
 	const std::map<const User *, privilege>&	getUsersMap() const;
 };
+
 
 #endif
