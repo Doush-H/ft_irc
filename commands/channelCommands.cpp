@@ -262,16 +262,28 @@ std::map<User, std::string>	Server::kickCommand(Message& msg)
 		if (chan == _channels.end()) {
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "403 " + msg.getSenderUser().getNick() \
 				+ " " + msgParams.front() + " :No such channel");
-		} else if (chan->second.findUser(msg.getSenderUser()) != OPERATOR) {
+			return resp;
+		}
+
+		if (chan->second.findUser(msg.getSenderUser()) != OPERATOR) {
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " \
 				+ msgParams.front() + " :You're not channel operator");
-		} else if (chan->second.findUser(rm->second) == -1) {
+			return resp;
+		} 
+		
+		if (chan->second.findUser(rm->second) == -1) {
 			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "441 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :They aren't on that channel");
-		} else if (msgParams.size() == 2) {
+			return resp;
+		}
+		
+		if (msgParams.size() == 2) {
 			kickNoComment(&resp, msg, chan->second, rm->second);
 		} else if (msgParams.size() == 3) {
 			kickComment(&resp, msg, chan->second, rm->second);
 		}
+		
+		if (chan->second.countUsers() == 0) // if after kick channel is empty remove the channel
+			_channels.erase(chan->first);
 	}
 	return resp;
 }
