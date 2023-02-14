@@ -40,13 +40,20 @@ User&	ChannelBot::getBotUser() {
 }
 
 privilege	ChannelBot::checkUserHistory(User &user) {
-	std::map<std::string, privilege>::iterator	it = _userHistory.begin();
-	for (; it != _userHistory.end(); it++) {
-		if (user.getNick() + "!" + user.getName() + "@" + user.getHostmask() == it->first) {
-			return (it->second);
-		}
-	}
+	std::map<std::string, privilege>::iterator	it = _userHistory.find(user.getNick() + "!" + user.getName() + "@" + user.getHostmask());
+	if (it != _userHistory.end())
+		return it->second;
 	return (NO_PRIO);
+}
+
+void	ChannelBot::addUserHistory(const User &user, privilege priv) {
+	std::string	hostmask = user.getNick() + "!" + user.getName() + "@" + user.getHostmask();
+	std::map<std::string, privilege>::iterator	it = _userHistory.find(hostmask);
+	if (it != _userHistory.end()) {
+		it->second = priv;
+	} else {
+		_userHistory.insert(std::pair<std::string, privilege> (hostmask, priv));
+	}
 }
 
 std::map<std::string, privilege>	ChannelBot::getUserHistory() const {

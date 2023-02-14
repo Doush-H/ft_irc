@@ -32,6 +32,7 @@ public:
 	~Channel();
     //string getter setters
 	ChannelBot									channelBot;
+	void										initBotHistory();
 	const std::string&							getName() const;
 	const std::string&							getChannelKey() const;
 	void										setChannelKey(const std::string &key);

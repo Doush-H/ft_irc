@@ -75,6 +75,47 @@ Server::Server(char** argv){
 	_stop = false;
 }
 
+void	Server::botChecks() {
+	std::map<std::string, Channel>::iterator it = _channels.begin();
+	std::map<User, std::string> botResponses;
+	for (; it != _channels.end(); it++) {
+		// check for timestamps, add bots, remove bots
+
+		struct timeval currentTime;
+		gettimeofday(&currentTime, NULL);
+		User* botUser = &it->second.channelBot.getBotUser();
+
+		if (it->second.countUsers() >= 5 && !it->second.channelBot.getIsActive()) {
+
+			it->second.initBotHistory();
+			sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " JOIN " + it->second.getName());
+			sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " MODE " + it->second.getName() + " +o " + botUser->getNick());
+			it->second.addUser(*botUser, OPERATOR);
+			it->second.channelBot.setIsActive(true);
+			it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
+			continue;
+		}
+
+		if (it->second.countUsers() >= 6 && it->second.channelBot.getIsActive()) {
+			it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
+			std::cout << "Bot active" << std::endl;
+			continue;
+		}
+
+		if (it->second.countUsers() < 6 && it->second.channelBot.getIsActive()) {
+			std::cout << "Bot counting down" << std::endl;
+			if (it->second.channelBot.getTimestamp().tv_sec <= currentTime.tv_sec) {
+				it->second.channelBot.setIsActive(false);
+				it->second.removeUser(*botUser);
+				sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " PART " + it->second.getName() + " :Bye bye :D");
+				std::cout << "Bot deleted" << std::endl;
+			}
+		}
+	}
+	// Send the bot responses
+	sendResponse(&botResponses);
+}
+
 // ---------------------- Methods --------------------------
 
 void Server::start() {
@@ -86,45 +127,7 @@ void Server::start() {
 	}
 	int pollReturn;
 	while (!_stop) {
-		std::map<std::string, Channel>::iterator it = _channels.begin();
-		std::map<User, std::string> botResponses;
-		for (; it != _channels.end(); it++) {
-			// check for timestamps, add bots, remove bots
-
-
-			struct timeval currentTime;
-			gettimeofday(&currentTime, NULL);
-			User* botUser = &it->second.channelBot.getBotUser();
-
-			if (it->second.countUsers() >= 5 && !it->second.channelBot.getIsActive()) {
-
-				sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " JOIN " + it->second.getName());
-				sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " MODE " + it->second.getName() + " +o " + botUser->getNick());
-				it->second.addUser(*botUser, OPERATOR);
-				it->second.channelBot.setIsActive(true);
-				it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
-				continue;
-			}
-
-			if (it->second.countUsers() >= 6 && it->second.channelBot.getIsActive()) {
-				it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
-				std::cout << "Bot active" << std::endl;
-				continue;
-			}
-
-			if (it->second.countUsers() < 6 && it->second.channelBot.getIsActive()) {
-				std::cout << "Bot counting down" << std::endl;
-				if (it->second.channelBot.getTimestamp().tv_sec <= currentTime.tv_sec) {
-					it->second.channelBot.setIsActive(false);
-					it->second.removeUser(*botUser);
-					sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " PART " + it->second.getName() + " :Bye bye :D");
-					std::cout << "Bot deleted" << std::endl;
-				}
-			}
-		}
-		// Send the bot responses
-		sendResponse(&botResponses);
-
+		botChecks();
 		// Waiting for some activity on any of the user fds
 		pollReturn = poll(_userPoll, _activePoll, 5000); // poll timeout set to 5 seconds to reduce the amount of system calls
 

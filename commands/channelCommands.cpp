@@ -79,16 +79,24 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				std::string key = params.back();
 				if (params.size() == 2 && chan->second.checkModes(KEY_PROTECTED) && chan->second.getChannelKey() == key) {	//if key is required and the correct key was provided accept the person
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
-					std::cout << "outside" << std::endl;
-					chan->second.addUser(msg.getSenderUser(), checkPrivilege(msg, chan->second, &resp));
+					privilege	priv = checkPrivilege(msg, chan->second, &resp);
+					chan->second.addUser(msg.getSenderUser(), priv);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
+					if (chan->second.channelBot.getIsActive()) {
+						chan->second.channelBot.addUserHistory(msg.getSenderUser(), priv);
+					}
 					// spawnBot(&resp, chan->second, *it);
 				} else if (chan->second.checkModes(KEY_PROTECTED) && (params.size() == 1 || chan->second.getChannelKey() != key)) {	//else if key not provided or key not correct
 					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
 				} else {	//if no key then join the channel directly
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin);
-					chan->second.addUser(msg.getSenderUser(), checkPrivilege(msg, chan->second, &resp));
+					privilege	priv = checkPrivilege(msg, chan->second, &resp);
+					std::cout << "returning user priv: " << priv << std::endl;
+					chan->second.addUser(msg.getSenderUser(), priv);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
+					if (chan->second.channelBot.getIsActive()) {
+						chan->second.channelBot.addUserHistory(msg.getSenderUser(), priv);
+					}
 					// spawnBot(&resp, chan->second, *it);
 				}
 			}

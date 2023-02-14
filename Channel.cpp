@@ -21,6 +21,13 @@ Channel	&Channel::operator = (const Channel &copy) {
 	return *this;
 }
 
+void	Channel::initBotHistory() {
+	std::map<const User *, privilege>::iterator	it = _users.begin();
+	for (; it != _users.end(); it++) {
+		channelBot.addUserHistory(*it->first, it->second);
+	}
+}
+
 const std::string	&Channel::getName() const
 {
 	return (_name);

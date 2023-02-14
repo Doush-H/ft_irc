@@ -190,6 +190,7 @@ class SendingTheMsgFailedException : public std::exception {
 	std::map<User, std::string>				inviteCommand(Message& msg);
 	std::map<User, std::string>				kickCommand(Message& msg);
 
+	void									botChecks();
 	void									refreshList(std::map<User, std::string>* resp);
 	// A helper funnction to be used by other functions (including listCommand()), pass the channels param as an empty string in order to list all channels
 	void 									listChannels(std::map<User, std::string>* resp, Message* msg, std::string channels);

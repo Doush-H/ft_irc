@@ -170,12 +170,17 @@ void	Server::modeChangeChannelUser(std::map<User, std::string> *resp, Message &m
 		int removeflags = flags >> 8;	//separate remove flags from add flags by bitshifting
 		flags = flags << 24;
 		flags = flags >> 24;
-		if (flags & 1)
+		if (flags & 1) {
 			chan->second.setPrivilege(user->second, OPERATOR);
-		else if (flags & 2)
+			chan->second.channelBot.addUserHistory(user->second, OPERATOR);
+		} else if (flags & 2) {
 			chan->second.setPrivilege(user->second, VOICE_PRIO);
-		if (removeflags & 2 || removeflags & 1)
+			chan->second.channelBot.addUserHistory(user->second, VOICE_PRIO);
+		}
+		if (removeflags & 2 || removeflags & 1) {
 			chan->second.setPrivilege(user->second, NO_PRIO);
+			chan->second.channelBot.addUserHistory(user->second, NO_PRIO);		
+		}
 		User	temp = msg.getSenderUser();
 		std::string	message = SERV_PREFIX "324 " + temp.getNick() \
 			+ " " + chanName + " " + msgParams.front() + " " + msgParams.back();
