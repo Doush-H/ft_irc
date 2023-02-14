@@ -38,14 +38,18 @@ std::map<User, std::string> Server::quitCommand(Message& msg) {
 			quitMessage += " :" + msg.getParams().back();
 		while (chanIt != _channels.end()) {
 			if (chanIt->second.findUser(msg.getSenderUser()) != -1) {
-				sendToChannel(&resp, chanIt->second, quitMessage);
 				chanIt->second.removeUser(msg.getSenderUser());
-				if (chanIt->second.countUsers() == 0)
-					_channels.erase(chanIt->first);
+				if (chanIt->second.countUsers() == 0) {
+					_channels.erase(chanIt++->first);
+					continue;
+				}
+				else {
+					sendToChannel(&resp, chanIt->second, quitMessage);
+					refreshList(&resp);
+				}
+
 			}
 			chanIt++;
-			if (chanIt->second.countUsers() == 0)
-				_channels.erase(chanIt);
 		}
 		addResponse(&resp, msg.getSenderUser(), quitMessage);
 	}
