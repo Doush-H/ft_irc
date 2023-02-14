@@ -64,7 +64,7 @@ bool Server::privmsgToChannelCommand(Message* msg, std::map<User, std::string>* 
 			addResponse(resp, msg->getSenderUser(), cannotSendMessage);
 			return false;
 		} else { // if user in the channel then continue
-			if (channel.checkModes(MODERATED) && channel.findUser(msg->getSenderUser()) != VOICE_PRIO && channel.findUser(msg->getSenderUser()) != OPERATOR) {
+			if ((channel.checkModes(MODERATED) && channel.findUser(msg->getSenderUser()) != VOICE_PRIO && channel.findUser(msg->getSenderUser()) != OPERATOR) || channel.findUser(msg->getSenderUser()) == INVITED) {
 				resp->clear();
 				addResponse(resp, msg->getSenderUser(), cannotSendMessage);
 				return false;

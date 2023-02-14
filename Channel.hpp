@@ -25,6 +25,7 @@ private:
 	std::string							_topic;
 	std::map<const User *, privilege>	_users;
 	int									_modes;
+	int									_userCount;
 public:
 	Channel(std::string name, int modes);
 	Channel(const Channel &copy);
@@ -47,6 +48,8 @@ public:
 	bool										checkModes(int modes) const;
 	void										setModes(int modes);
 	int											getModes() const ;
+	void										setUserCount(int count);
+	int											getUserCount() const ;
 	void										removeModes(int modes);
 	const std::map<const User *, privilege>&	getUsersMap() const;
 };
