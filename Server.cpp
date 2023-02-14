@@ -82,41 +82,51 @@ void Server::start() {
 		setupSocket();
 	} catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
-		exit (-1);
+		exit(-1);
 	}
 	int pollReturn;
 	while (!_stop) {
 		std::map<std::string, Channel>::iterator it = _channels.begin();
+		std::map<User, std::string> botResponses;
 		for (; it != _channels.end(); it++) {
 			// check for timestamps, add bots, remove bots
 
 
+			struct timeval currentTime;
+			gettimeofday(&currentTime, NULL);
+			User* botUser = &it->second.channelBot.getBotUser();
 
-			// if (it->second.channelBot.getDespawnBot()) {
-			// 	it->second.removeUser(it->second.channelBot.getBotUser());
-			// 	std::string	msg = ":channelBot!channelBot@127.0.0.1 PART " + it->second.getName();
-			// 	std::map<User, std::string>	resp;
-			// 	std::map<const User *, privilege> users = it->second.getUsersMap();
-			// 	std::map<const User *, privilege>::const_iterator it2 = users.begin();
-			// 	it->second.channelBot.setDespawnBot(false);
-			// 	while (it2 != users.end()) {
-			// 		addResponse(&resp, *(it2->first), msg);
-			// 		it2++;
-			// 	}
-			// 	if (!it->second.countUsers()) {
-			// 		it = _channels.erase(it);
-			// 		refreshList(&resp);
-			// 		sendResponse(&resp);
-			// 		break ;
-			// 	}
-			// 	refreshList(&resp);
-			// 	sendResponse(&resp);
-			// }
+			if (it->second.countUsers() >= 5 && !it->second.channelBot.getIsActive()) {
+
+				sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " JOIN " + it->second.getName());
+				sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " MODE " + it->second.getName() + " +o " + botUser->getNick());
+				it->second.addUser(*botUser, OPERATOR);
+				it->second.channelBot.setIsActive(true);
+				it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
+				continue;
+			}
+
+			if (it->second.countUsers() >= 6 && it->second.channelBot.getIsActive()) {
+				it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
+				std::cout << "Bot active" << std::endl;
+				continue;
+			}
+
+			if (it->second.countUsers() < 6 && it->second.channelBot.getIsActive()) {
+				std::cout << "Bot counting down" << std::endl;
+				if (it->second.channelBot.getTimestamp().tv_sec <= currentTime.tv_sec) {
+					it->second.channelBot.setIsActive(false);
+					it->second.removeUser(*botUser);
+					sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " PART " + it->second.getName() + " :Bye bye :D");
+					std::cout << "Bot deleted" << std::endl;
+				}
+			}
 		}
-
+		// Send the bot responses
+		sendResponse(&botResponses);
 
 		// Waiting for some activity on any of the user fds
-		pollReturn = poll(_userPoll, _activePoll, 900);
+		pollReturn = poll(_userPoll, _activePoll, 5000); // poll timeout set to 5 seconds to reduce the amount of system calls
 
 		// Check if poll failed
 		if (pollReturn == -1)
@@ -245,6 +255,7 @@ void Server::executeCommand(int i) {
 		std::string cmd;
 		std::map<User, std::string> responses;
 
+
 		// Going to execute commands until there's nothing to execute anymore
 		while (!(cmd = user->getCommand()).empty()) {
 			std::cout << "Going to execute: |" << cmd << "|" << std::endl;
@@ -254,11 +265,7 @@ void Server::executeCommand(int i) {
 			// Execute and get a response
 			responses = commandCall(message);
 			// Send back response
-			try {
-				sendResponse(&responses);
-			} catch (std::exception& e) {
-				std::cout << e.what() << std::endl;
-			}
+			sendResponse(&responses);
 		}
 	}
 }
@@ -304,15 +311,15 @@ std::map<User, std::string> Server::commandCall(Message& msg) {
 void Server::sendResponse(std::map<User, std::string>* responses) {
 	std::map<User, std::string>::iterator it = responses->begin();
 	while (it != responses->end()) {
-		if (it->first.getUserFd() == -2) {
-			it++;
-			continue ;
-		}
 		it->second.append("\r\n");
-		if (send(it->first.getUserFd(), it->second.c_str(), it->second.length(), 0) == -1)
-			throw SendingTheMsgFailedException();
-		std::cout << "|" << it->second << "| was successfully sent to " + it->first.getNick() + "\n" << std::endl;
+		// dont throw just print error and continue
+		if (send(it->first.getUserFd(), it->second.c_str(), it->second.length(), 0) == -1) {
+			std::cout << "Couldn't send the response to fd: " << it->first.getUserFd() << std::endl;
+			it++;
+			continue;
+		}
 
+		std::cout << "|" << it->second << "| was successfully sent to " + it->first.getNick() + "\n" << std::endl;
 		if (it->first.isDisconnect()) {
 			removeUser(it->first.getUserFd());
 			std::cout << it->first.getNick() << " QUIT THE SERVER" << std::endl;

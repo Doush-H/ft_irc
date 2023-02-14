@@ -4,17 +4,22 @@
 
 #include <iostream>
 
-ChannelBot::ChannelBot() {}
-
-ChannelBot::ChannelBot(Channel &chan) {
-	std::map<const User *, privilege>	users = chan.getUsersMap();
-	std::map<const User *, privilege>::const_iterator	it = users.begin();
-	for (; it != users.end(); it++) {
-		std::string	str = it->first->getNick() + "!" + it->first->getName() + "@" + it->first->getHostmask();
-		_userHistory.insert(std::pair<std::string, privilege> (str, it->second));
-	}
-	chan.addUser(_botUser, OPERATOR);
+ChannelBot::ChannelBot() {
+	_botUser.setFullName("Bot Chad");
+	_botUser.setNick("MisterBot");
+	_botUser.setName("MisterBot");
+	_botUser.setUserFd(-2);
 }
+
+// ChannelBot::ChannelBot(Channel &chan) {
+// 	std::map<const User *, privilege>	users = chan.getUsersMap();
+// 	std::map<const User *, privilege>::const_iterator	it = users.begin();
+// 	for (; it != users.end(); it++) {
+// 		std::string	str = it->first->getNick() + "!" + it->first->getName() + "@" + it->first->getHostmask();
+// 		_userHistory.insert(std::pair<std::string, privilege> (str, it->second));
+// 	}
+// 	chan.addUser(_botUser, OPERATOR);
+// }
 
 ChannelBot::ChannelBot(ChannelBot &copy) {
 	*this = copy;
@@ -30,7 +35,7 @@ ChannelBot	&ChannelBot::operator = (ChannelBot &copy) {
 
 ChannelBot::~ChannelBot() {}
 
-User	ChannelBot::getBotUser() const {
+User&	ChannelBot::getBotUser() {
 	return _botUser;
 }
 

@@ -19,11 +19,11 @@ private:
 	struct timeval						_timestamp;
 public:
 	ChannelBot();
-	ChannelBot(Channel &chan);
+	// ChannelBot(Channel &chan);
 	ChannelBot(ChannelBot &bot);
 	ChannelBot	&operator = (ChannelBot &bot);
 	~ChannelBot();
-	User				getBotUser() const;
+	User&				getBotUser();
 	void				setIsActive(bool active);
 	bool				getIsActive() const;
 	privilege			checkUserHistory(User &user);
