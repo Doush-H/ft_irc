@@ -2,7 +2,7 @@
 #include "Channel.hpp"
 #include "ChannelBot.hpp"
 
-Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes) {}
+Channel::Channel(std::string name, int modes) : _name(name), _topic("No topic is set"), _modes(modes), _userCount(0) {}
 
 Channel::~Channel() {}
 
@@ -17,6 +17,7 @@ Channel	&Channel::operator = (const Channel &copy) {
 		_topic = copy.getTopic();
 		_users = copy.getUsersMap();
 		_modes = copy.getModes();
+		_userCount = copy.getUserCount();
 	}
 	return *this;
 }
@@ -53,9 +54,12 @@ void	Channel::setTopic(const std::string &topic)
 	_topic = topic;
 }
 
+#include <iostream>
+
 size_t	Channel::countUsers() const
 {
-	return (_users.size());
+	std::cout << "count is: " << _userCount << std::endl;
+	return (_userCount);
 }
 
 void	Channel::setPrivilege(const User &user, privilege priv)
@@ -79,12 +83,18 @@ int	Channel::findUser(const User &user) const
 void	Channel::removeUser(const User &user)
 {
 	_users.erase(&user);
+	_userCount--;
 }
 
 void	Channel::addUser(User &user, privilege priv)
 {
 	if (_users.find(&user) == _users.end())
 		_users.insert(std::pair<const User *, privilege>(&user, priv));
+	else
+		_users.find(&user)->second = priv;
+	
+	if (priv != INVITED)
+		_userCount++;
 }
 
 
@@ -109,4 +119,12 @@ const std::map<const User *, privilege>& Channel::getUsersMap() const {
 
 int	Channel::getModes() const {
 	return _modes;
+}
+
+void Channel::setUserCount(int count) {
+	_userCount = count;
+}
+
+int Channel::getUserCount() const {
+	return _userCount;
 }

@@ -16,7 +16,7 @@ void Server::sendToChannel(std::map<User, std::string>* resp, const Channel& cha
 	std::map<const User *, privilege>::const_iterator it = users.begin();
 
 	while (it != users.end()) {
-		if (it->first->getUserFd() == -2) {
+		if (it->first->getUserFd() == -2 || it->second == INVITED) {
 			it++;
 			continue ;
 		}
@@ -33,7 +33,7 @@ void Server::sendMsgToChannel(std::map<User, std::string>* resp, const Channel& 
 
 
 	while (it != users.end()) {
-		if (it->first->getUserFd() == -2) {
+		if (it->first->getUserFd() == -2 | it->second == INVITED) {
 			it++;
 			continue ;
 		}
