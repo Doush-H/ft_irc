@@ -292,6 +292,8 @@ std::map<User, std::string>	Server::kickCommand(Message& msg)
 		
 		if (chan->second.countUsers() == 0) // if after kick channel is empty remove the channel
 			_channels.erase(chan->first);
+		
+		refreshList(&resp);
 	}
 	return resp;
 }

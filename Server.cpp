@@ -78,7 +78,7 @@ Server::Server(char** argv){
 void	Server::botChecks() {
 	std::map<std::string, Channel>::iterator it = _channels.begin();
 	std::map<User, std::string> botResponses;
-	for (; it != _channels.end(); it++) {
+	while (it != _channels.end()) {
 		// check for timestamps, add bots, remove bots
 
 		struct timeval currentTime;
@@ -93,12 +93,15 @@ void	Server::botChecks() {
 			it->second.addUser(*botUser, OPERATOR);
 			it->second.channelBot.setIsActive(true);
 			it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
+			refreshList(&botResponses);
+			it++;
 			continue;
 		}
 
 		if (it->second.countUsers() >= 6 && it->second.channelBot.getIsActive()) {
 			it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
 			std::cout << "Bot active" << std::endl;
+			it++;
 			continue;
 		}
 
@@ -107,10 +110,19 @@ void	Server::botChecks() {
 			if (it->second.channelBot.getTimestamp().tv_sec <= currentTime.tv_sec) {
 				it->second.channelBot.setIsActive(false);
 				it->second.removeUser(*botUser);
-				sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " PART " + it->second.getName() + " :Bye bye :D");
+
+				if (it->second.countUsers() == 0) {
+					_channels.erase(it++->first);
+					continue;
+				} else if (it->second.countUsers() > 1) {
+					sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " PART " + it->second.getName() + " :Bye bye :D");
+				}
+				
 				std::cout << "Bot deleted" << std::endl;
+				refreshList(&botResponses);
 			}
 		}
+		it++;
 	}
 	// Send the bot responses
 	sendResponse(&botResponses);
