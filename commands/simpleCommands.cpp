@@ -44,6 +44,8 @@ std::map<User, std::string> Server::quitCommand(Message& msg) {
 					_channels.erase(chanIt->first);
 			}
 			chanIt++;
+			if (chanIt->second.countUsers() == 0)
+				_channels.erase(chanIt);
 		}
 		addResponse(&resp, msg.getSenderUser(), quitMessage);
 	}

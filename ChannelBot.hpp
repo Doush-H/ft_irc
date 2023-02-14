@@ -26,6 +26,7 @@ public:
 	User&				getBotUser();
 	void				setIsActive(bool active);
 	bool				getIsActive() const;
+	void				addUserHistory(const User &user, privilege priv);
 	privilege			checkUserHistory(User &user);
 	struct timeval& 	getTimestamp();
 
