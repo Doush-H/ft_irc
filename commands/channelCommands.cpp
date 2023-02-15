@@ -278,8 +278,8 @@ std::map<User, std::string>	Server::kickCommand(Message& msg)
 			return resp;
 		} 
 		
-		if (chan->second.findUser(rm->second) == -1) {
-			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "441 " + msg.getSenderUser().getNick() + " " + msgParams.front() + " :They aren't on that channel");
+		if (chan->second.findUser(rm->second) == -1 || chan->second.findUser(rm->second) == INVITED) {
+			addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "441 " + msg.getSenderUser().getNick() + " " + msgParams.back() + " " + chan->first + " :They aren't on that channel");
 			return resp;
 		}
 		

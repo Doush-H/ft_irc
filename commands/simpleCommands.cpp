@@ -167,7 +167,7 @@ std::map<User, std::string> Server::inviteCommand(Message& msg) {
 	// Check if the invited user is already in the channel
 	int invitedUserPriv = channel->findUser(userIt->second);
 	if (invitedUserPriv != -1) {
-		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "482 " + msg.getSenderUser().getNick() + " " + userNick + " " + chanName + " :User already in the channel");
+		addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "443 " + msg.getSenderUser().getNick() + " " + userNick + " " + chanName + " :User already in the channel");
 		return resp;
 	}
 

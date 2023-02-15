@@ -113,8 +113,9 @@ void	Server::botChecks() {
 
 				if (it->second.countUsers() == 0) {
 					_channels.erase(it++->first);
+					refreshList(&botResponses);
 					continue;
-				} else if (it->second.countUsers() > 1) {
+				} else {
 					sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " PART " + it->second.getName() + " :Bye bye :D");
 				}
 				
