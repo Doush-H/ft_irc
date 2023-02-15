@@ -91,7 +91,6 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				} else {	//if no key then join the channel directly
 					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin);
 					privilege	priv = checkPrivilege(msg, chan->second, &resp);
-					std::cout << "returning user priv: " << priv << std::endl;
 					chan->second.addUser(msg.getSenderUser(), priv);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 					if (chan->second.channelBot.getIsActive()) {
