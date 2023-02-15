@@ -88,13 +88,15 @@ void	Channel::removeUser(const User &user)
 
 void	Channel::addUser(User &user, privilege priv)
 {
-	if (_users.find(&user) == _users.end())
+	std::map<const User *, privilege>::iterator userIt = _users.find(&user);
+	if ((userIt != _users.end() && userIt->second == INVITED && priv != INVITED) || (userIt == _users.end() && priv != INVITED))
+		_userCount++;
+
+	if (userIt == _users.end())
 		_users.insert(std::pair<const User *, privilege>(&user, priv));
 	else
-		_users.find(&user)->second = priv;
+		userIt->second = priv;
 	
-	if (priv != INVITED)
-		_userCount++;
 }
 
 
