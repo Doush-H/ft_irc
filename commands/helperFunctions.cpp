@@ -33,7 +33,7 @@ void Server::sendMsgToChannel(std::map<User, std::string>* resp, const Channel& 
 
 
 	while (it != users.end()) {
-		if (it->first->getUserFd() == -2 | it->second == INVITED) {
+		if (it->first->getUserFd() == -2 || it->second == INVITED) {
 			it++;
 			continue ;
 		}
