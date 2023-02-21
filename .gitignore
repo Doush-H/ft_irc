@@ -2,5 +2,5 @@
 *.out
 ircserv
 _obj
-vscode
+.vscode
 ft_irc.code-workspace
