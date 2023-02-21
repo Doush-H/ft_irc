@@ -2,3 +2,4 @@
 *.out
 ircserv
 _obj
+.vscode
