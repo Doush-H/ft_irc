@@ -72,8 +72,8 @@ Server::Server(char** argv){
 		throw WrongPortNumberException();
 	_port = (int) port;
 	_password = argv[2];
-	if (_password.empty())
-		throw EmptyPasswordException();
+	if (_password.empty() || checkForbidenChars(_password, " :,"))
+		throw IncorrectPasswordException();
 	_stop = false;
 }
 

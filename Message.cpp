@@ -97,7 +97,9 @@ void Message::parseParams(const std::string& buf, Message& msg) {
 	normalParams = newBuf.substr(0, colonPos);
 	while (!normalParams.empty()) {
 		posOfParam = normalParams.find(' ');
-		tmpList.push_back(normalParams.substr(0, posOfParam));
+		std::string tmp = normalParams.substr(0, posOfParam);
+		if (!tmp.empty())
+			tmpList.push_back(tmp);
 		if (posOfParam != std::string::npos) 
 			posOfParam++;
 		normalParams.erase(0, posOfParam);

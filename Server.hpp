@@ -100,9 +100,9 @@ class SendingTheMsgFailedException : public std::exception {
 		}
 	};
 
-class EmptyPasswordException : public std::exception {
+class IncorrectPasswordException : public std::exception {
 		const char * what() const throw() {
-			return "Empty password not allowed";
+			return "Provided password is incorrect";
 		}
 	};
 
