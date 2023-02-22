@@ -68,10 +68,12 @@ void Server::setActivePoll(nfds_t pollSize) {
 Server::Server(char** argv){
 	// pthread_create(&_botManager, NULL, threadStart, &_channels);
 	long port = strtol(argv[1], NULL, 0);
-	if (port < 0 || errno == ERANGE)
+	if (port <= 0 || errno == ERANGE)
 		throw WrongPortNumberException();
 	_port = (int) port;
 	_password = argv[2];
+	if (_password.empty())
+		throw EmptyPasswordException();
 	_stop = false;
 }
 

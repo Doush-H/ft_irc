@@ -100,6 +100,12 @@ class SendingTheMsgFailedException : public std::exception {
 		}
 	};
 
+class EmptyPasswordException : public std::exception {
+		const char * what() const throw() {
+			return "Empty password not allowed";
+		}
+	};
+
 	// -------------------- Constructors ----------------------
 	Server(char** argv);
 
