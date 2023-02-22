@@ -92,14 +92,14 @@ void	Server::botChecks() {
 			sendToChannel(&botResponses, it->second, ":" + botUser->getNick() + " MODE " + it->second.getName() + " +o " + botUser->getNick());
 			it->second.addUser(*botUser, OPERATOR);
 			it->second.channelBot.setIsActive(true);
-			it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
+			it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + BOT_TIMEOUT;
 			refreshList(&botResponses);
 			it++;
 			continue;
 		}
 
 		if (it->second.countUsers() >= 6 && it->second.channelBot.getIsActive()) {
-			it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + 10;
+			it->second.channelBot.getTimestamp().tv_sec = currentTime.tv_sec + BOT_TIMEOUT;
 			std::cout << "Bot active" << std::endl;
 			it++;
 			continue;

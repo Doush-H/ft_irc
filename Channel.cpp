@@ -58,7 +58,6 @@ void	Channel::setTopic(const std::string &topic)
 
 size_t	Channel::countUsers() const
 {
-	std::cout << "count is: " << _userCount << std::endl;
 	return (_userCount);
 }
 

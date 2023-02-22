@@ -6,8 +6,8 @@
 
 ChannelBot::ChannelBot() {
 	_botUser.setFullName("Bot Chad");
-	_botUser.setNick("MisterBot");
-	_botUser.setName("MisterBot");
+	_botUser.setNick("ChannelBot");
+	_botUser.setName("ChannelBot");
 	_botUser.setUserFd(-2);
 	_isActive = false;
 }
