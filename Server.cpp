@@ -43,26 +43,6 @@ void Server::setActivePoll(nfds_t pollSize) {
 	_activePoll = pollSize;
 }
 
-// static void	*threadStart(void *data) {
-// 	std::map<std::string, Channel> *channels = static_cast <std::map<std::string, Channel> *> (data);
-// 	int	timer = 60;
-// 	while (1) {
-// 		std::map<std::string, Channel>::const_iterator	it = channels->begin();
-// 		for (; it != channels->end(); it++) {
-// 			pthread_mutex_lock(&it->second.botMutex);
-// 		}
-// 		// if (timer <= 0) {
-// 		// 	break ;
-// 		// }
-// 		// sleep (1);
-// 		// timer--;
-// 		// if (chanBot->getBotEnabled())
-// 		// 	timer = 60;
-// 		// std::cout << timer << std::endl;
-// 	}
-// 	pthread_exit(NULL);
-// }
-
 // ---------------------- Constructors ------------------------
 
 Server::Server(char** argv){
@@ -260,7 +240,6 @@ void Server::executeCommand(int i) {
 	if (recvBytes == -1)
 		throw ReadingTheMsgFailedException();
 	if (recvBytes == 0) {
-		// !!!!!!! Probably need to close the disconnected users fd too, not sure tho :D !!!!!!!!
 		std::cout << "Client disconnected" << std::endl;
 		removeUser(_userPoll[i].fd);
 	} else {
@@ -347,8 +326,6 @@ void Server::sendResponse(std::map<User, std::string>* responses) {
 }
 
 void Server::removeUser(int fd) {
-	// if (i <= 0 || i >= SOMAXCONN)
-	// 	throw IndexOutOfBoundException();
 	removeUserFromChannels(_users.find(fd)->second);
 	_users.erase(fd);
 	close(fd);

@@ -50,25 +50,6 @@ Message Message::parseBuf(const std::string& buf) {
 	return message;
 }
 
-// !!!! Prefix not used for now !!!!!!
-// std::string Message::parsePrefix(const std::string& buf, Message& msg) {
-// 	std::string newBuf = buf;
-// 	if (buf[0] == ':') {
-// 		// Find and set the prefix from the buffer
-// 		int end = buf.find(' ');
-// 		msg.setPrefix(buf.substr(0, end));
-
-// 		// Remove the prefix and space/s for the next function
-// 		// Removing the prefix part
-// 		newBuf.erase(0, end);
-
-// 		//Find and remove the spaces (' ') after the prefix
-// 		int start = newBuf.find_first_not_of(' ');
-// 		newBuf.erase(0, start);
-// 	}
-// 	return newBuf;
-// }
-
 std::string Message::parseCommand(const std::string& buf, Message& msg) {
 	std::string newBuf = buf;
 

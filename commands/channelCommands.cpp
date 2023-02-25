@@ -68,7 +68,8 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 				sendInfoToNewJoin(msg, &(newchan), &resp);
 			} else if (chan->second.checkModes(INVITE_ONLY)) {
 				if (chan->second.findUser(msg.getSenderUser()) == INVITED) {
-					chan->second.setPrivilege(msg.getSenderUser(), NO_PRIO);
+					sendToChannel(&resp, _channels.find(*it)->second, successfulJoin); // send the join message to the whole channel to inform everyone that a new user joined the channel
+					chan->second.addUser(msg.getSenderUser(), NO_PRIO);
 					sendInfoToNewJoin(msg, &(chan->second), &resp);
 					//change to NO_PRIO
 				} else {
@@ -85,7 +86,6 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 					if (chan->second.channelBot.getIsActive()) {
 						chan->second.channelBot.addUserHistory(msg.getSenderUser(), priv);
 					}
-					// spawnBot(&resp, chan->second, *it);
 				} else if (chan->second.checkModes(KEY_PROTECTED) && (params.size() == 1 || chan->second.getChannelKey() != key)) {	//else if key not provided or key not correct
 					addResponse(&resp, msg.getSenderUser(), SERV_PREFIX "475 " + msg.getSenderUser().getNick() + " " + chan->second.getName() + " :Cannot join channel, invalid key");
 				} else {	//if no key then join the channel directly
@@ -96,7 +96,6 @@ std::map<User, std::string> Server::joinCommand(Message& msg){
 					if (chan->second.channelBot.getIsActive()) {
 						chan->second.channelBot.addUserHistory(msg.getSenderUser(), priv);
 					}
-					// spawnBot(&resp, chan->second, *it);
 				}
 			}
 		}
